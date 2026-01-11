@@ -1,0 +1,178 @@
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fd;
+}
+
+/* Main area */
+.dashboard-content {
+  margin-left: 230px;
+  padding: 25px;
+  width: 100%;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-icon {
+  background: #bcd0ff;
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Welcome text */
+.welcome {
+  margin: 15px 0 25px 0;
+  color: #333;
+}
+
+/* Summary boxes */
+.summary-boxes {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.box {
+  flex: 1;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+}
+
+.box h3 {
+  font-size: 24px;
+  color: #2563eb;
+}
+
+.box p {
+  color: #555;
+}
+
+/* Campaigns + Donations section */
+.main-section {
+  display: flex;
+  gap: 25px;
+}
+
+.campaigns, .donations {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  padding: 20px;
+  flex: 1;
+}
+
+.campaigns table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.campaigns th, .campaigns td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.img-placeholder {
+  background: #bcd0ff;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+}
+
+/* Donations */
+.donation-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.donation-img {
+  background: #bcd0ff;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+}
+
+/* Profile Status */
+.profile-status {
+  margin-top: 25px;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.status-box {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.circle {
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+  background: #bcd0ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
+.complete-btn {
+  margin-top: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.complete-btn:hover {
+  background: #1e40af;
+}
+
+/* Graph section */
+.progress-graph {
+  margin-top: 25px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.graph-placeholder {
+  height: 160px;
+  background: #eef3ff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  color: #555;
+}
+
+

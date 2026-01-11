@@ -1,0 +1,65 @@
+.dash-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+}
+
+.dash-card {
+  width: 520px;
+  background: #020617;
+  padding: 32px;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(0,0,0,.7);
+  color: #f8fafc;
+}
+
+.dash-card h2 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+}
+
+.stat h3 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actions a {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.primary {
+  background: linear-gradient(90deg,#2563eb,#3b82f6);
+  color: white;
+}
+
+.secondary {
+  border: 1px solid #1e293b;
+  color: #e5e7eb;
+}

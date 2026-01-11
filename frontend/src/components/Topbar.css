@@ -1,0 +1,38 @@
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.search-box input {
+  width: 280px;
+  padding: 10px 14px;
+  border-radius: 25px;
+  border: 1px solid #cbd5e1;
+  background: #f8f9fd;
+}
+
+.topbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.icon {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.profile-mini {
+  height: 35px;
+  width: 35px;
+  background: #cbd7ff;
+  border-radius: 50%;
+  cursor: pointer;
+}

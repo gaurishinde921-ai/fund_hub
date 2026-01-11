@@ -1,0 +1,55 @@
+.req-wrap {
+  padding: 40px;
+  background: #020617;
+  min-height: 100vh;
+  color: #f8fafc;
+}
+
+.req-card {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.req-card.unread {
+  border-color: #2563eb;
+}
+
+.actions button {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.lock-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top,#0f172a,#020617);
+}
+
+.lock-card {
+  background: #020617;
+  padding: 32px;
+  border-radius: 16px;
+  text-align: center;
+  color: white;
+}
+
+.lock-card a {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: #2563eb;
+  color: white;
+  border-radius: 10px;
+  text-decoration: none;
+}

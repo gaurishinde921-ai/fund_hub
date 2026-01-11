@@ -1,0 +1,120 @@
+.edit-layout {
+  display: flex;
+  background: #f5f7ff;
+  min-height: 100vh;
+}
+
+.edit-main {
+  margin-left: 230px;
+  padding: 30px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.edit-card {
+  width: 500px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 26px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.edit-card h2 {
+  margin: 0 0 18px;
+}
+
+/* avatar */
+.edit-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.edit-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #d4e0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 26px;
+  overflow: hidden;
+}
+
+.edit-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edit-upload-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #cbd5f5;
+  background: #eef2ff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* form */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.edit-form input,
+.edit-form textarea {
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 9px 11px;
+  font-size: 14px;
+}
+
+.edit-form input:focus,
+.edit-form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
+/* buttons */
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.cancel-btn,
+.save-btn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cancel-btn {
+  background: #e5e7eb;
+}
+
+.save-btn {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
