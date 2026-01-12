@@ -1,4 +1,3 @@
-// backend/server.js
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -62,8 +61,7 @@ app.post("/api/login", (req, res) => {
 
 // ================== PROFILE UPLOAD ROUTE ==================
 app.post("/api/profile", upload.single("profilePic"), (req, res) => {
-  const { startupName, username, category, mobile, gender, address, pincode } =
-    req.body;
+  const { startupName, username, category, mobile, gender, address, pincode } = req.body;
 
   if (!startupName || !username || !category || !mobile || !gender || !address || !pincode)
     return res.status(400).json({ success: false, message: "All fields are required" });
@@ -80,24 +78,15 @@ app.post("/api/profile", upload.single("profilePic"), (req, res) => {
   };
 
   console.log("📌 Profile Saved:", profileData);
-  res.json({
-    success: true,
-    message: "Profile saved successfully!",
-    data: profileData,
-  });
+  res.json({ success: true, message: "Profile saved successfully!", data: profileData });
 });
 
-// =============================================================
-//              🟦 RAZORPAY INTEGRATION (OPTION B)
-// =============================================================
-
-// 1️⃣ Create Razorpay Instance
+// ================== RAZORPAY INTEGRATION ==================
 const razorpay = new Razorpay({
-  key_id: "rzp_test_xxxxxxxxxx",       // << REPLACE WITH YOUR KEY
-  key_secret: "xxxxxxxxxxxxxxxx",     // << REPLACE WITH YOUR SECRET
+  key_id: "rzp_test_xxxxxxxxxx",
+  key_secret: "xxxxxxxxxxxxxxxx",
 });
 
-// 2️⃣ Create Order API
 app.post("/create-order", async (req, res) => {
   try {
     const { amount } = req.body;
@@ -115,11 +104,9 @@ app.post("/create-order", async (req, res) => {
   }
 });
 
-// 3️⃣ Verify Payment API
 app.post("/verify-payment", (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-      req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     const expectedSignature = crypto
       .createHmac("sha256", razorpay.key_secret)
@@ -137,6 +124,20 @@ app.post("/verify-payment", (req, res) => {
   }
 });
 
+// ================== BACKEND FEATURE ROUTES ==================
+
+// KYC
+const kycRoutes = require('./routes/kycRoutes');
+app.use('/api/kyc', kycRoutes);
+
+// Notifications
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
+// Settings
+const settingsRoutes = require('./routes/settingsRoutes');
+app.use('/api/settings', settingsRoutes);
+
 // ================== TEST ROUTE ==================
 app.get("/", (req, res) => {
   res.send("🚀 FundHub backend is running!");
@@ -146,6 +147,7 @@ app.get("/", (req, res) => {
 app.listen(PORT, () =>
   console.log(`🚀 Backend running at: http://localhost:${PORT}`)
 );
+
 
 
 
