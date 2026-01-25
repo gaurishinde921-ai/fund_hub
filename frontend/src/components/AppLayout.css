@@ -1,0 +1,64 @@
+/* ===== ROOT LAYOUT ===== */
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden; /* prevent whole page scroll */
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+/* ===== MAIN WRAPPER ===== */
+.main {
+  margin-left: 230px;                 /* sidebar width */
+  width: calc(100vw - 230px);         /* 🔥 REQUIRED FIX */
+  min-width: 0;                       /* 🔥 flexbox overflow fix */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #020617;
+}
+
+/* ===== SIDEBAR COLLAPSED ===== */
+.sidebar.collapsed ~ .main {
+  margin-left: 72px;
+  width: calc(100vw - 72px);           /* 🔥 REQUIRED FIX */
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+  flex-shrink: 0;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+/* ===== PAGE CONTENT SCROLLS ===== */
+.content-scroll {
+  flex: 1;
+  width: 100%;
+  min-width: 0;                        /* 🔥 prevents content shrink */
+  overflow-y: auto;                   /* ONLY content scrolls */
+  overflow-x: hidden;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 50;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100vw;                      /* 🔥 full width on mobile */
+  }
+}
+
