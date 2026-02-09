@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
@@ -7,83 +9,46 @@ import ProfileSetup from "./pages/ProfileSetup";
 import Requests from "./pages/Requests";
 import Subscription from "./pages/Subscription";
 import ProfilePage from "./pages/ProfilePage";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProfileGuard from "./components/ProfileGuard";
-import { useAuth } from "./context/AuthContext";
 import AddPost from "./pages/AddPost";
 import ManageCampaigns from "./pages/ManageCampaigns";
 import Chat from "./pages/Chat";
 
+import AppLayout from "./components/AppLayout";
+
 export default function App() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
 
   return (
     <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/home" />} />
-      <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/home" />} />
+      {/* ROOT */}
+      <Route path="/" element={<Navigate to={user ? "/home" : "/login"} />} />
 
+      {/* AUTH */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
+      {/* PROFILE SETUP */}
       <Route
         path="/profile-setup"
-        element={
-          <ProtectedRoute>
-            <ProfileSetup />
-          </ProtectedRoute>
-        }
+        element={user ? <ProfileSetup /> : <Navigate to="/login" />}
       />
 
-      <Route
-  path="/add-post"
-  element={
-    <ProtectedRoute>
-      <ProfileGuard>
-        <AddPost />
-      </ProfileGuard>
-    </ProtectedRoute>
-  }
-/>
+      {/* 🔥 EVERYTHING BELOW USES SIDEBAR */}
+      <Route element={<AppLayout />}>
+        <Route path="/home" element={<Home />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/requests" element={<Requests />} />
+        <Route path="/subscription" element={<Subscription />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/add-post" element={<AddPost />} />
+        <Route path="/manage" element={<ManageCampaigns />} />
+        <Route path="/chat/:chatId" element={<Chat />} />
+      </Route>
 
-<Route
-  path="/manage"
-  element={
-    <ProtectedRoute>
-      <ProfileGuard>
-        <ManageCampaigns />
-      </ProfileGuard>
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/chat/:chatId"
-  element={
-    <ProtectedRoute>
-      <ProfileGuard>
-        <Chat />
-      </ProfileGuard>
-    </ProtectedRoute>
-  }
-/>
-
-
-      {["/home", "/explore", "/requests", "/subscription", "/profile"].map((p) => (
-        <Route
-          key={p}
-          path={p}
-          element={
-            <ProtectedRoute>
-              <ProfileGuard>
-                {p === "/home" ? <Home /> :
-                 p === "/explore" ? <Explore /> :
-                 p === "/requests" ? <Requests /> :
-                 p === "/subscription" ? <Subscription /> :
-                 <ProfilePage />}
-              </ProfileGuard>
-            </ProtectedRoute>
-          }
-        />
-      ))}
-
-      <Route path="*" element={<Navigate to={user ? "/home" : "/login"} />} />
+      {/* FALLBACK */}
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

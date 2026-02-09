@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import "./Home.css";
 
 export default function Home() {
@@ -14,11 +21,9 @@ export default function Home() {
     if (!user) return;
 
     const loadDashboard = async () => {
-      // fetch profile
       const userSnap = await getDoc(doc(db, "users", user.uid));
       if (userSnap.exists()) setProfile(userSnap.data());
 
-      // fetch campaign count
       const q = query(
         collection(db, "campaigns"),
         where("ownerId", "==", user.uid)
@@ -39,6 +44,12 @@ export default function Home() {
       <div className="dash-card">
         <h2>Welcome, {profile?.username || "User"} 👋</h2>
 
+          <p className="hero-summary">
+           <span className="brand">FundHub</span> helps you launch, manage & grow
+            fundraising campaigns — all in one place.
+         </p>
+
+
         <div className="stats">
           <div className="stat">
             <h3>{campaignCount}</h3>
@@ -52,8 +63,12 @@ export default function Home() {
         </div>
 
         <div className="actions">
-          <a href="/add-post" className="primary">Add Campaign</a>
-          <a href="/explore" className="secondary">Explore</a>
+          <a href="/add-post" className="primary">
+            Add Campaign
+          </a>
+          <a href="/explore" className="secondary">
+            Explore
+          </a>
         </div>
       </div>
     </div>

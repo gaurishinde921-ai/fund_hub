@@ -1,38 +1,136 @@
-.add-wrapper {
-  min-height: 100vh;
+.add-campaign-wrapper {
+  width: 100%;
+  padding: 40px;
+  background: radial-gradient(circle at top, #0f172a, #020617);
   display: flex;
-  align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top,#0f172a,#020617);
+  align-items: flex-start;
 }
 
-.add-card {
-  width: 460px;
+.add-campaign-card {
+  width: 100%;
+  max-width: 520px;
   background: #020617;
   padding: 32px;
   border-radius: 16px;
-  box-shadow: 0 25px 60px rgba(0,0,0,.7);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   color: #f8fafc;
 }
 
-.add-card textarea,
-.add-card input,
-.add-card select {
+.add-campaign-card h2 {
+  text-align: center;
+  font-size: 24px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #cbd5f5;
+  margin-bottom: 18px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+input,
+textarea,
+select {
   padding: 12px;
   border-radius: 10px;
   border: 1px solid #1e293b;
   background: #020617;
   color: #e5e7eb;
+  font-size: 14px;
 }
 
-.add-card button {
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row > * {
+  flex: 1;
+}
+
+/* 🔥 MEDIA UPLOAD */
+.media-upload {
+  margin-top: 6px;
+}
+
+.media-box {
+  display: block;
+  border: 2px dashed #475569;
+  border-radius: 14px;
+  padding: 28px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.media-box:hover {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.media-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #cbd5f5;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* BUTTONS */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.action-buttons button {
+  flex: 1;
   padding: 12px;
   border-radius: 10px;
   border: none;
-  background: linear-gradient(90deg,#2563eb,#3b82f6);
-  color: white;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: white;
+}
+
+.secondary {
+  background: #020617;
+  border: 1px solid #1e293b;
+  color: #cbd5f5;
+}
+
+.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+@media (max-width: 768px) {
+  .add-campaign-wrapper {
+    padding: 24px;
+  }
+
+  .form-row,
+  .action-buttons {
+    flex-direction: column;
+  }
 }

@@ -1,38 +1,272 @@
+/* 🌙 THEMES */
+body.dark {
+  background: #020617;
+}
+
+body.light {
+  background: #f8fafc;
+}
+
+/* TOPBAR */
 .topbar {
+  height: 60px;
+  background: #fff;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  background: white;
-  padding: 12px 20px;
+  padding: 0 20px;
   border-bottom: 1px solid #e5e7eb;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
-.search-box input {
-  width: 280px;
-  padding: 10px 14px;
-  border-radius: 25px;
-  border: 1px solid #cbd5e1;
-  background: #f8f9fd;
+.topbar-search {
+  width: 320px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  outline: none;
 }
 
-.topbar-icons {
+/* ACTIONS */
+.topbar-actions {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
 }
 
-.icon {
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.profile-mini {
-  height: 35px;
-  width: 35px;
-  background: #cbd7ff;
+.icon-btn {
+  position: relative;
+  background: #f1f5f9;
+  border: none;
+  padding: 8px;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: #e2e8f0;
+}
+
+/* 🔴 BADGE */
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: red;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 50%;
+}
+
+/* DROPDOWN */
+.dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 240px;
+  background: #020617;
+  color: white;
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  z-index: 999;
+}
+
+.dropdown p {
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dropdown p:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.dropdown .danger {
+  color: #f87171;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.topbar-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.icon-wrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+.dropdown {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  background: #020617;
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 180px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 50;
+}
+
+.dropdown p {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.dropdown span {
+  cursor: pointer;
+  color: #cbd5f5;
+}
+
+.dropdown span:hover {
+  color: white;
+}
+
+.dropdown .danger {
+  color: #f87171;
+}
+
+/* 🔴 Notification badge */
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: bold;
+}
+
+/* ✨ Dropdown animation */
+.animated {
+  animation: fadeSlide 0.18s ease-out;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Hover polish */
+.icon-wrapper svg {
+  transition: transform 0.15s ease;
+}
+
+.icon-wrapper:hover svg {
+  transform: scale(1.1);
+}/* HAMBURGER SHOULD NOT SHOW ON DESKTOP */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* SHOW HAMBURGER ONLY ON MOBILE */
+@media (max-width: 768px) {
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.topbar {
+  height: 60px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.search {
+  width: 260px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.icon-btn {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 40px;
+  width: 240px;
+  background: #020617;
+  color: white;
+  border-radius: 10px;
+  padding: 10px;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.notification-dropdown .title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.notification-dropdown .item {
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notification-dropdown .item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* SEARCH BAR WITH ICON */
+.search-box {
+  position: relative;
+  width: 300px;
+}
+
+.search-box .search {
+  width: 100%;
+  padding: 8px 12px 8px 38px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
 }
