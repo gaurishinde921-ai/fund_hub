@@ -13,9 +13,8 @@ import ProfilePage from "./pages/ProfilePage";
 import AddPost from "./pages/AddPost";
 import ManageCampaigns from "./pages/ManageCampaigns";
 import Chat from "./pages/Chat";
-
-/* 🔥 ADD THIS IMPORT */
 import EditProfile from "./pages/EditProfile";
+import Payment from "./pages/Payment";
 
 import AppLayout from "./components/AppLayout";
 
@@ -24,7 +23,7 @@ export default function App() {
 
   // 🔒 HOLD ROUTER until auth ready
   if (loading) {
-    return null; // or loader if you want
+    return null;
   }
 
   return (
@@ -49,7 +48,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* VERIFY EMAIL — UNGUARDED */}
+      {/* VERIFY EMAIL */}
       <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* PROFILE SETUP */}
@@ -58,7 +57,10 @@ export default function App() {
         element={user ? <ProfileSetup /> : <Navigate to="/login" />}
       />
 
-      {/* 🔐 PROTECTED APP */}
+      {/* PAYMENT (friend feature) */}
+      <Route path="/payment" element={<Payment />} />
+
+      {/* 🔐 PROTECTED APP (with sidebar) */}
       <Route
         element={
           user ? (
@@ -75,12 +77,9 @@ export default function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/requests" element={<Requests />} />
-        <Route path="/subscription" element={<Subscription />} />
+        <Route path="/subscriptions" element={<Subscription />} />
         <Route path="/profile" element={<ProfilePage />} />
-
-        {/* 🔥 EDIT PROFILE ROUTE ADDED */}
         <Route path="/edit-profile" element={<EditProfile />} />
-
         <Route path="/add-post" element={<AddPost />} />
         <Route path="/manage" element={<ManageCampaigns />} />
         <Route path="/chat/:chatId" element={<Chat />} />

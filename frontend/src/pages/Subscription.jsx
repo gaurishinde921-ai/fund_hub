@@ -1,89 +1,95 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./Subscription.css";
-import Sidebar from "../components/Sidebar";
-import { useAuth } from "../context/AuthContext";
-import { db } from "../firebase";
+import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-import axios from "axios";
-import { loadRazorpay } from "../utils/razorpay";
+import { db } from "../firebase";
+import { useAuth } from "../context/AuthContext";
 
-const Subscription = () => {
+export default function Subscription() {
+  const [plan, setPlan] = useState("free");
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const plansRef = useRef(null);
-
-  const [plan, setPlan] = useState("1month");
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-
-    const check = async () => {
+    const fetchPlan = async () => {
+      if (!user) return;
       const snap = await getDoc(doc(db, "users", user.uid));
-      if (snap.exists() && snap.data().subscription === "premium") {
-        setIsSubscribed(true);
+      if (snap.exists()) {
+        setPlan(snap.data().subscription || "free");
       }
-      setLoading(false);
     };
-
-    check();
+    fetchPlan();
   }, [user]);
 
-  const handlePay = async () => {
-    await loadRazorpay();
+  const choosePlan = (id) => {
+    setPlan(id); // glow moves instantly
 
-    const prices = {
-      "1month": 19900,
-      "3months": 49900,
-      "1year": 129900,
-    };
-
-    const order = await axios.post("http://localhost:5000/create-order", {
-      amount: prices[plan],
-      userId: user.uid,
-      plan,
-    });
-
-    const options = {
-      key: "RAZORPAY_PUBLIC_KEY",
-      order_id: order.data.id,
-      currency: "INR",
-      name: "FundHub Premium",
-      handler: () => {
-        alert("Payment successful. Verifying...");
-      },
-    };
-
-    new window.Razorpay(options).open();
+    if (id === "free") return;
+    navigate(`/payment?plan=${id}`);
   };
 
-  if (loading) return null;
+  const plans = [
+    {
+      id: "free",
+      name: "Free",
+      price: "₹0",
+      features: ["1 Campaign", "Basic Support", "Limited Visibility"],
+    },
+    {
+      id: "pro",
+      name: "Pro",
+      price: "₹199 / month",
+      badge: "🔥 Most Popular",
+      features: [
+        "Unlimited Campaigns",
+        "Priority Support",
+        "Better Visibility",
+        "Analytics Dashboard",
+      ],
+    },
+    {
+      id: "premium",
+      name: "Premium",
+      price: "₹399 / month",
+      badge: "💎 Best Value",
+      features: [
+        "Unlimited Campaigns",
+        "Top Visibility",
+        "Premium Badge",
+        "Advanced Analytics",
+        "Priority Listing",
+      ],
+    },
+  ];
 
   return (
-    <div className="subscription-layout">
-      <Sidebar />
+    <div className="sub-wrapper">
+      <h1 className="title">Choose Your Plan</h1>
 
-      <div className="subscription-page">
-        <header className="subscription-hero">
-          <h1>FundHub Premium 🚀</h1>
+      <div className="plan-grid">
+        {plans.map((p) => (
+          <div
+            key={p.id}
+            className={`card ${plan === p.id ? "active" : ""}`}
+            onClick={() => choosePlan(p.id)}
+          >
+            {p.badge && <span className="badge">{p.badge}</span>}
 
-          {isSubscribed ? (
-            <span className="badge badge-success">✅ Premium Active</span>
-          ) : (
-            <button onClick={handlePay}>Activate Premium</button>
-          )}
-        </header>
+            <h2>{p.name}</h2>
+            <h1 className="price">{p.price}</h1>
 
-        {!isSubscribed && (
-          <section ref={plansRef}>
-            <div onClick={() => setPlan("1month")}>₹199 / Month</div>
-            <div onClick={() => setPlan("3months")}>₹499 / 3 Months</div>
-            <div onClick={() => setPlan("1year")}>₹1299 / Year</div>
-          </section>
-        )}
+            <ul>
+              {p.features.map((f, i) => (
+                <li key={i}>✔ {f}</li>
+              ))}
+            </ul>
+
+            <button className="btn">
+              {plan === p.id ? "Current Plan" : "Choose Plan"}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
-};
-
-export default Subscription;
+}

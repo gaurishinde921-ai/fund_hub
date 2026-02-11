@@ -11,13 +11,17 @@ export default function ProfileGuard({ children }) {
 
   useEffect(() => {
     const checkProfile = async () => {
-      if (!user) return;
+      // 🔴 IMPORTANT: handle NO USER case
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
 
         if (snap.exists()) {
-          setProfileCompleted(!!snap.data().profileCompleted);
+          setProfileCompleted(Boolean(snap.data()?.profileCompleted));
         } else {
           setProfileCompleted(false);
         }
@@ -25,7 +29,7 @@ export default function ProfileGuard({ children }) {
         console.error("ProfileGuard error:", err);
         setProfileCompleted(false);
       } finally {
-        setLoading(false);
+        setLoading(false); // ✅ ALWAYS end loading
       }
     };
 
@@ -35,7 +39,7 @@ export default function ProfileGuard({ children }) {
   if (loading) {
     return (
       <div style={{ color: "white", textAlign: "center", marginTop: "100px" }}>
-        Loading profile…
+        Checking profile…
       </div>
     );
   }
