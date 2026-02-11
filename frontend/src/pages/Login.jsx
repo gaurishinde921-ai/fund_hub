@@ -26,11 +26,10 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
-      // 🔥 BLOCK UNVERIFIED EMAILS
+      // 🔐 If email NOT verified → redirect to VerifyEmail page
       if (!auth.currentUser.emailVerified) {
-        setError("Please verify your email before logging in");
         await signOut(auth);
-        setLoading(false);
+        navigate("/verify-email");
         return;
       }
 
@@ -151,7 +150,7 @@ const EyeOffIcon = (
   </svg>
 );
 
-/* STYLES */
+/* STYLES (unchanged) */
 const styles = {
   container: {
     minHeight: "100vh",
@@ -181,9 +180,7 @@ const styles = {
     background: "#020617",
     color: "white",
   },
-  passwordWrap: {
-    position: "relative",
-  },
+  passwordWrap: { position: "relative" },
   eyeBtn: {
     position: "absolute",
     right: "10px",

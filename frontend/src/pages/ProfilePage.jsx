@@ -14,9 +14,8 @@ export default function ProfilePage() {
   const [donations, setDonations] = useState([]);
 
   const [activeTab, setActiveTab] = useState("campaigns");
-  const [showSettings, setShowSettings] = useState(false);
 
-  // 🔄 Load local cached data (safe fallback)
+  /* ================= LOAD DATA ================= */
   useEffect(() => {
     setProfile(JSON.parse(localStorage.getItem("profile")) || {});
     setCampaigns(JSON.parse(localStorage.getItem("campaigns")) || []);
@@ -24,11 +23,13 @@ export default function ProfilePage() {
     setDonations(JSON.parse(localStorage.getItem("donations")) || []);
   }, []);
 
+  /* ================= TOTAL FUNDS ================= */
   const totalFunds = donations.reduce(
     (sum, d) => sum + (Number(d.amount) || 0),
     0
   );
 
+  /* ================= PROFILE PHOTO ================= */
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -42,6 +43,21 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
   };
 
+  /* ================= COVER PHOTO ================= */
+  const handleCoverChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const updated = { ...profile, cover: reader.result };
+      setProfile(updated);
+      localStorage.setItem("profile", JSON.stringify(updated));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* ================= SHARE ================= */
   const shareProfile = () => {
     navigator.clipboard.writeText(
       `${window.location.origin}/profile/${profile.username || ""}`
@@ -49,6 +65,7 @@ export default function ProfilePage() {
     alert("Profile link copied 📋");
   };
 
+  /* ================= LOGOUT ================= */
   const handleLogout = async () => {
     await signOut(auth);
     localStorage.clear();
@@ -60,28 +77,25 @@ export default function ProfilePage() {
       <Sidebar />
 
       <div className="profile-container">
-        {/* TOP BAR */}
-        <div className="profile-top">
-          <h2>Profile</h2>
+        {/* ================= COVER ================= */}
+        <div className="profile-banner">
+          <img
+            src={
+              profile.cover ||
+              "https://images.unsplash.com/photo-1557683316-973673baf926"
+            }
+            alt="cover"
+            className="cover-img"
+          />
 
-          <button
-            className="menu-btn"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            ☰
-          </button>
-
-          {showSettings && (
-            <div className="settings-dropdown">
-              <p onClick={() => navigate("/edit-profile")}>Edit Profile</p>
-              <p onClick={() => navigate("/profile-setup")}>Profile Setup</p>
-              <p onClick={handleLogout}>Logout</p>
-            </div>
-          )}
+          <label className="cover-upload">
+            Change Cover
+            <input type="file" hidden onChange={handleCoverChange} />
+          </label>
         </div>
 
-        {/* PROFILE CARD */}
-        <div className="profile-card">
+        {/* ================= HEADER ================= */}
+        <div className="profile-header">
           <div className="profile-left">
             <label className="avatar-wrapper">
               <img
@@ -94,35 +108,41 @@ export default function ProfilePage() {
               <input type="file" hidden onChange={handlePhotoChange} />
             </label>
 
-            <h3>{profile.name || "Your Name"}</h3>
-            <p className="username">@{profile.username || "username"}</p>
-            <p className="bio">{profile.bio || "No bio added yet"}</p>
-
-            <div className="profile-actions">
-              <button onClick={() => navigate("/edit-profile")}>
-                Edit Profile
-              </button>
-              <button onClick={shareProfile}>Share Profile</button>
+            <div className="profile-info">
+              <h2>{profile.name || "Your Name"}</h2>
+              <p className="username">@{profile.username || "username"}</p>
+              <p className="bio">{profile.bio || "No bio added yet"}</p>
             </div>
           </div>
 
-          <div className="profile-stats">
-            <div>
-              <h4>{campaigns.length}</h4>
-              <p>Campaigns</p>
-            </div>
-            <div>
-              <h4>₹{totalFunds}</h4>
-              <p>Funds Raised</p>
-            </div>
-            <div>
-              <h4>{donations.length}</h4>
-              <p>Supporters</p>
-            </div>
+          <div className="profile-actions">
+            <button onClick={() => navigate("/edit-profile")}>
+              Edit Profile
+            </button>
+            <button onClick={shareProfile}>Share</button>
+            <button onClick={handleLogout}>Logout</button>
           </div>
         </div>
 
-        {/* TABS */}
+        {/* ================= STATS ================= */}
+        <div className="stats-row">
+          <div className="stat-box">
+            <h3 className="stat-value">{campaigns.length}</h3>
+            <p>Campaigns</p>
+          </div>
+
+          <div className="stat-box">
+            <h3 className="stat-value">₹{totalFunds}</h3>
+            <p>Funds Raised</p>
+          </div>
+
+          <div className="stat-box">
+            <h3 className="stat-value">{donations.length}</h3>
+            <p>Supporters</p>
+          </div>
+        </div>
+
+        {/* ================= TABS ================= */}
         <div className="tabs">
           {["campaigns", "drafts", "donations", "liked", "saved"].map((tab) => (
             <button
@@ -135,44 +155,56 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* CONTENT */}
+        {/* ================= CONTENT ================= */}
         <div className="content-box">
           {activeTab === "campaigns" &&
             (campaigns.length === 0 ? (
-              <button onClick={() => navigate("/add-post")}>
+              <button
+                className="add-btn"
+                onClick={() => navigate("/add-post")}
+              >
                 + Add Campaign
               </button>
             ) : (
-              campaigns.map((c, i) => (
-                <div key={i} className="item-card">
-                  <h4>{c.title}</h4>
-                  <p>
-                    ₹{c.raised} / ₹{c.goal}
-                  </p>
-                </div>
-              ))
+              <div className="campaign-grid">
+                {campaigns.map((c, i) => (
+                  <div key={i} className="campaign-card">
+                    <img
+                      src={
+                        c.image ||
+                        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f"
+                      }
+                      alt="campaign"
+                      className="campaign-img"
+                    />
+
+                    <div className="campaign-body">
+                      <h4>{c.title}</h4>
+
+                      <p className="campaign-amount">
+                        ₹{c.raised || 0} raised of ₹{c.goal || 0}
+                      </p>
+
+                      <div className="progress-bar">
+                        <div
+                          className="progress-fill"
+                          style={{
+                            width: `${
+                              c.goal
+                                ? Math.min((c.raised / c.goal) * 100, 100)
+                                : 0
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ))}
 
-          {activeTab === "drafts" &&
-            (drafts.length === 0 ? (
-              <p>No drafts available</p>
-            ) : (
-              drafts.map((d, i) => <div key={i}>{d.title}</div>)
-            ))}
-
-          {activeTab === "donations" &&
-            (donations.length === 0 ? (
-              <p>No donations yet</p>
-            ) : (
-              donations.map((d, i) => (
-                <div key={i} className="item-card">
-                  <p>User: {d.userId}</p>
-                  <p>₹{d.amount}</p>
-                  <p>{d.date}</p>
-                </div>
-              ))
-            ))}
-
+          {activeTab === "drafts" && <p>No drafts available</p>}
+          {activeTab === "donations" && <p>No donations yet</p>}
           {activeTab === "liked" && <p>No liked campaigns</p>}
           {activeTab === "saved" && <p>No saved campaigns</p>}
         </div>

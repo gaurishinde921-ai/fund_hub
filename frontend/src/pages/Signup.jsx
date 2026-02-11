@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  signOut,                 // 🔥 ADDED
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
@@ -30,16 +31,17 @@ export default function Signup() {
     setLoading(true);
 
     try {
+      // 1️⃣ Create account (Firebase auto-login happens here)
       const res = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
 
-      // 🔥 SEND VERIFICATION EMAIL
+      // 2️⃣ Send verification email
       await sendEmailVerification(res.user);
 
-      // 🔥 SAVE USER
+      // 3️⃣ Save user in Firestore
       await setDoc(doc(db, "users", res.user.uid), {
         uid: res.user.uid,
         username,
@@ -50,8 +52,13 @@ export default function Signup() {
         createdAt: new Date(),
       });
 
-      // 🔥 Redirect to verify email info page
+      // 🔥 4️⃣ IMPORTANT FIX
+      // Logout user immediately so NO site access without verification
+      await signOut(auth);
+
+      // 5️⃣ Redirect only to verify page
       navigate("/verify-email");
+
     } catch (err) {
       setError("Email already in use or invalid");
     } finally {
