@@ -12,8 +12,11 @@ import ProfilePage from "./pages/ProfilePage";
 import AddPost from "./pages/AddPost";
 import ManageCampaigns from "./pages/ManageCampaigns";
 import Chat from "./pages/Chat";
-
 import AppLayout from "./components/AppLayout";
+import Payment from "./pages/Payment";
+
+
+
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -34,13 +37,13 @@ export default function App() {
         path="/profile-setup"
         element={user ? <ProfileSetup /> : <Navigate to="/login" />}
       />
-
-      {/* 🔥 EVERYTHING BELOW USES SIDEBAR */}
+      <Route path="/payment" element={<Payment />} />
+      {/* 🔥 APP LAYOUT (Sidebar + Protected Pages) */}
       <Route element={<AppLayout />}>
         <Route path="/home" element={<Home />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/requests" element={<Requests />} />
-        <Route path="/subscription" element={<Subscription />} />
+        <Route path="/subscriptions" element={<Subscription />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/add-post" element={<AddPost />} />
         <Route path="/manage" element={<ManageCampaigns />} />
