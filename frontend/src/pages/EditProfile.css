@@ -1,9 +1,10 @@
 .edit-layout {
   display: flex;
-  background: #f5f7ff;
+  background: #020817;   /* 🔥 dark bg to match profile */
   min-height: 100vh;
 }
 
+/* MAIN */
 .edit-main {
   margin-left: 230px;
   padding: 30px;
@@ -12,19 +13,21 @@
   justify-content: center;
 }
 
+/* CARD */
 .edit-card {
   width: 500px;
   background: #ffffff;
   border-radius: 16px;
   padding: 24px 26px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
 }
 
 .edit-card h2 {
   margin: 0 0 18px;
+  color: #020817;
 }
 
-/* avatar */
+/* AVATAR */
 .edit-avatar-section {
   display: flex;
   align-items: center;
@@ -60,7 +63,7 @@
   font-size: 14px;
 }
 
-/* form */
+/* FORM */
 .edit-form {
   display: flex;
   flex-direction: column;
@@ -88,7 +91,7 @@
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
 
-/* buttons */
+/* BUTTONS */
 .edit-actions {
   display: flex;
   justify-content: flex-end;

@@ -1,89 +1,92 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import VerifyEmail from "./pages/VerifyEmail";
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
 import ProfileSetup from "./pages/ProfileSetup";
 import Requests from "./pages/Requests";
 import Subscription from "./pages/Subscription";
 import ProfilePage from "./pages/ProfilePage";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProfileGuard from "./components/ProfileGuard";
-import { useAuth } from "./context/AuthContext";
 import AddPost from "./pages/AddPost";
 import ManageCampaigns from "./pages/ManageCampaigns";
 import Chat from "./pages/Chat";
+import EditProfile from "./pages/EditProfile";
+import Payment from "./pages/Payment";
+
+import AppLayout from "./components/AppLayout";
 
 export default function App() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // 🔒 HOLD ROUTER until auth ready
+  if (loading) {
+    return null;
+  }
 
   return (
     <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/home" />} />
-      <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/home" />} />
-
+      {/* ROOT */}
       <Route
-        path="/profile-setup"
+        path="/"
         element={
-          <ProtectedRoute>
-            <ProfileSetup />
-          </ProtectedRoute>
+          user ? (
+            user.emailVerified ? (
+              <Navigate to="/home" />
+            ) : (
+              <Navigate to="/verify-email" />
+            )
+          ) : (
+            <Navigate to="/login" />
+          )
         }
       />
 
+      {/* AUTH */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
+      {/* VERIFY EMAIL */}
+      <Route path="/verify-email" element={<VerifyEmail />} />
+
+      {/* PROFILE SETUP */}
       <Route
-  path="/add-post"
-  element={
-    <ProtectedRoute>
-      <ProfileGuard>
-        <AddPost />
-      </ProfileGuard>
-    </ProtectedRoute>
-  }
-/>
+        path="/profile-setup"
+        element={user ? <ProfileSetup /> : <Navigate to="/login" />}
+      />
 
-<Route
-  path="/manage"
-  element={
-    <ProtectedRoute>
-      <ProfileGuard>
-        <ManageCampaigns />
-      </ProfileGuard>
-    </ProtectedRoute>
-  }
-/>
+      {/* PAYMENT (friend feature) */}
+      <Route path="/payment" element={<Payment />} />
 
-<Route
-  path="/chat/:chatId"
-  element={
-    <ProtectedRoute>
-      <ProfileGuard>
-        <Chat />
-      </ProfileGuard>
-    </ProtectedRoute>
-  }
-/>
+      {/* 🔐 PROTECTED APP (with sidebar) */}
+      <Route
+        element={
+          user ? (
+            user.emailVerified ? (
+              <AppLayout />
+            ) : (
+              <Navigate to="/verify-email" />
+            )
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      >
+        <Route path="/home" element={<Home />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/requests" element={<Requests />} />
+        <Route path="/subscriptions" element={<Subscription />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/add-post" element={<AddPost />} />
+        <Route path="/manage" element={<ManageCampaigns />} />
+        <Route path="/chat/:chatId" element={<Chat />} />
+      </Route>
 
-
-      {["/home", "/explore", "/requests", "/subscription", "/profile"].map((p) => (
-        <Route
-          key={p}
-          path={p}
-          element={
-            <ProtectedRoute>
-              <ProfileGuard>
-                {p === "/home" ? <Home /> :
-                 p === "/explore" ? <Explore /> :
-                 p === "/requests" ? <Requests /> :
-                 p === "/subscription" ? <Subscription /> :
-                 <ProfilePage />}
-              </ProfileGuard>
-            </ProtectedRoute>
-          }
-        />
-      ))}
-
-      <Route path="*" element={<Navigate to={user ? "/home" : "/login"} />} />
+      {/* FALLBACK */}
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

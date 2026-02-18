@@ -1,4 +1,5 @@
 // src/pages/EditProfile.jsx
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -9,7 +10,6 @@ import "./EditProfile.css";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("user");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,100 +22,129 @@ export default function EditProfile() {
   });
 
   const [preview, setPreview] = useState("");
-  const [file, setFile] = useState(null); // selected image file
+  const [file, setFile] = useState(null);
+
+  /* ================= GET USER ================= */
+  const user = auth.currentUser;
 
   useEffect(() => {
-    if (!userId) {
-      navigate("/signup");
+    if (!user) {
+      navigate("/login");
       return;
     }
 
-    const load = async () => {
+    const loadProfile = async () => {
       try {
-        const refDoc = doc(db, "users", userId);
+        const refDoc = doc(db, "users", user.uid);
         const snap = await getDoc(refDoc);
+
         if (snap.exists()) {
           const data = snap.data();
+
           setForm({
             name: data.name || "",
             username: data.username || "",
             bio: data.bio || "",
-            location: data.location || data.address || "",
+            location: data.location || "",
           });
-          setPreview(data.photo || data.profilePic || "");
+
+          setPreview(data.photo || "");
         }
-      } catch (e) {
-        console.error("Error loading profile for edit:", e);
+      } catch (err) {
+        console.error("Load error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    load();
-  }, [userId, navigate]);
+    loadProfile();
+  }, [user, navigate]);
 
+  /* ================= INPUT ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
   };
 
+  /* ================= PHOTO ================= */
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
+
     setFile(f);
     setPreview(URL.createObjectURL(f));
   };
 
+  /* ================= SAVE ================= */
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!userId) return;
+  e.preventDefault();
 
-    setSaving(true);
-    try {
-      let photoURL = preview;
+  setSaving(true);
 
-      // upload image if a new one is selected
-      if (file) {
-        const storageRef = ref(storage, `profiles/${userId}_${Date.now()}`);
-        await uploadBytes(storageRef, file);
-        photoURL = await getDownloadURL(storageRef);
-      }
+  try {
+    let photoURL = preview;
 
-      const refDoc = doc(db, "users", userId);
-      await setDoc(
-        refDoc,
-        {
-          name: form.name,
-          username: form.username,
-          bio: form.bio,
-          location: form.location,
+    // If new photo selected → convert to base64
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        photoURL = reader.result;
+
+        const updatedProfile = {
+          ...form,
           photo: photoURL,
-          updatedAt: new Date(),
-        },
-        { merge: true }
-      );
+        };
 
-      alert("Profile updated successfully ✅");
-      navigate("/profile");
-    } catch (e) {
-      console.error("Error saving profile:", e);
-      alert("Failed to save profile. " + (e.message || ""));
-    } finally {
-      setSaving(false);
+        // SAVE LOCALLY
+        localStorage.setItem(
+          "profile",
+          JSON.stringify(updatedProfile)
+        );
+
+        alert("Profile updated (Local) ✅");
+        navigate("/profile");
+      };
+
+      reader.readAsDataURL(file);
+
+      return; // stop further execution
     }
-  };
 
+    // If no new photo
+    const updatedProfile = {
+      ...form,
+      photo: photoURL,
+    };
+
+    localStorage.setItem(
+      "profile",
+      JSON.stringify(updatedProfile)
+    );
+
+    alert("Profile updated (Local) ✅");
+    navigate("/profile");
+  } catch (err) {
+    console.error(err);
+    alert("Save failed ❌");
+  } finally {
+    setSaving(false);
+  }
+};
+
+  /* ================= LOADER ================= */
   if (loading) {
     return (
       <div className="edit-layout">
         <Sidebar />
-        <div className="edit-main" style={{ alignItems: "center", justifyContent: "center" }}>
-          <p>Loading…</p>
+        <div className="edit-main">
+          <p>Loading...</p>
         </div>
       </div>
     );
   }
 
+  /* ================= UI ================= */
   return (
     <div className="edit-layout">
       <Sidebar />
@@ -126,16 +155,17 @@ export default function EditProfile() {
 
           <div className="edit-avatar-section">
             <div className="edit-avatar">
-              {preview ? (
-                <img src={preview} alt="preview" />
-              ) : (
-                <span>U</span>
-              )}
+              {preview ? <img src={preview} alt="" /> : <span>U</span>}
             </div>
 
             <label className="edit-upload-btn">
               Change Photo
-              <input type="file" accept="image/*" onChange={handleFileChange} hidden />
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleFileChange}
+              />
             </label>
           </div>
 
@@ -145,7 +175,6 @@ export default function EditProfile() {
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="Your full name"
             />
 
             <label>Username</label>
@@ -153,7 +182,6 @@ export default function EditProfile() {
               name="username"
               value={form.username}
               onChange={handleChange}
-              placeholder="your_username"
             />
 
             <label>Bio</label>
@@ -162,7 +190,6 @@ export default function EditProfile() {
               value={form.bio}
               onChange={handleChange}
               rows={3}
-              placeholder="Say something about yourself & your startup"
             />
 
             <label>Location</label>
@@ -170,7 +197,6 @@ export default function EditProfile() {
               name="location"
               value={form.location}
               onChange={handleChange}
-              placeholder="City, Country"
             />
 
             <div className="edit-actions">
@@ -181,7 +207,12 @@ export default function EditProfile() {
               >
                 Cancel
               </button>
-              <button type="submit" className="save-btn" disabled={saving}>
+
+              <button
+                type="submit"
+                className="save-btn"
+                disabled={saving}
+              >
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>

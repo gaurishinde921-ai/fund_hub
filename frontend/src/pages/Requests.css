@@ -1,10 +1,14 @@
 .req-wrap {
   padding: 40px;
   background: #020617;
-  min-height: 100vh;
   color: #f8fafc;
+
+  /* ❌ REMOVE min-height: 100vh */
+  width: 100%;
+  max-width: 100%;
 }
 
+/* Request card */
 .req-card {
   background: #020617;
   border: 1px solid #1e293b;
@@ -20,6 +24,7 @@
   border-color: #2563eb;
 }
 
+/* Buttons */
 .actions button {
   margin-left: 8px;
   padding: 6px 12px;
@@ -28,11 +33,16 @@
   cursor: pointer;
 }
 
+/* 🔒 Subscription Lock */
 .lock-wrap {
-  min-height: 100vh;
+  /* ❌ REMOVE min-height: 100vh */
+  width: 100%;
+  height: 100%;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   background: radial-gradient(circle at top,#0f172a,#020617);
 }
 
