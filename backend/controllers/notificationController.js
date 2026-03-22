@@ -1,18 +1,22 @@
-let notifications = [];
+const { success, error } = require("../utils/responseHandler");
 
-exports.sendNotification = (req, res) => {
-  const { userId, message } = req.body;
-  if (!userId || !message) return res.status(400).json({ message: 'Missing fields' });
-
-  const newNotification = { id: notifications.length + 1, userId, message, read: false };
-  notifications.push(newNotification);
-
-  res.status(201).json({ success: true, notification: newNotification });
-};
-
+// GET notifications
 exports.getNotifications = (req, res) => {
-  const { userId } = req.params;
-  const userNotifications = notifications.filter(n => n.userId === userId);
-
-  res.status(200).json({ notifications: userNotifications });
+  try {
+    return success(res, "Notifications fetched", {
+      userId: req.user.id,
+      notifications: [
+        {
+          id: 1,
+          message: "New request received"
+        },
+        {
+          id: 2,
+          message: "Payment successful"
+        }
+      ]
+    });
+  } catch (err) {
+    return error(res, "Failed to fetch notifications");
+  }
 };

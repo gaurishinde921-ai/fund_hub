@@ -1,24 +1,38 @@
-exports.signup = (req, res) => {
-  const { username, email, password } = req.body;
+exports.signup = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  if (!username || !email || !password)
-    return res.status(400).json({ success: false, message: "All fields required" });
+    if (!email || !password) {
+      return res.status(400).json({ error: "All fields required" });
+    }
 
-  const existing = users.find((u) => u.email === email);
-  if (existing)
-    return res.status(400).json({ success: false, message: "Email already exists" });
+    // TEMP (later Firebase)
+    return res.json({
+      success: true,
+      message: "User registered successfully",
+      user: { email }
+    });
 
-  users.push({ username, email, password });
-
-  return res.json({ success: true, message: "Signup successful!" });
+  } catch (err) {
+    res.status(500).json({ error: "Signup failed" });
+  }
 };
 
-exports.login = (req, res) => {
-  const { email, password } = req.body;
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  const user = users.find((u) => u.email === email && u.password === password);
-  if (!user)
-    return res.status(401).json({ success: false, message: "Invalid email or password" });
+    if (!email || !password) {
+      return res.status(400).json({ error: "All fields required" });
+    }
 
-  return res.json({ success: true, user });
+    return res.json({
+      success: true,
+      message: "Login successful",
+      token: "dummy-token"
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: "Login failed" });
+  }
 };

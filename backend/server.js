@@ -1,180 +1,56 @@
 const express = require("express");
 const cors = require("cors");
+const dotenv = require("dotenv");
 const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
-const Razorpay = require("razorpay");
-const crypto = require("crypto");
+
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
 
-// ================== MIDDLEWARE ==================
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+// Static
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Ensure uploads folder exists
-if (!fs.existsSync(path.join(__dirname, "uploads"))) {
-  fs.mkdirSync(path.join(__dirname, "uploads"));
-  console.log("📁 'uploads' folder created automatically");
-}
-
-// ================== MULTER CONFIG ==================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads")),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname)),
-});
-const upload = multer({ storage });
-
-// ================== TEMP USER DB (TEMPORARY) ==================
-const users = [];
-
-// ================== AUTH ROUTES ==================
-
-// Signup
-app.post("/api/signup", (req, res) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password)
-    return res.status(400).json({ success: false, message: "All fields are required" });
-
-  const exists = users.find((u) => u.email === email);
-  if (exists)
-    return res.status(400).json({ success: false, message: "Email already exists" });
-
-  users.push({ username, email, password });
-  res.json({ success: true, message: "Signup successful" });
-});
-
-// Login
-app.post("/api/login", (req, res) => {
-  const { email, password } = req.body;
-
-  const user = users.find((u) => u.email === email && u.password === password);
-
-  if (!user)
-    return res.status(401).json({ success: false, message: "Invalid email or password" });
-
-  res.json({ success: true, user });
-});
-
-// ================== PROFILE UPLOAD ROUTE ==================
-app.post("/api/profile", upload.single("profilePic"), (req, res) => {
-  const { startupName, username, category, mobile, gender, address, pincode } = req.body;
-
-  if (!startupName || !username || !category || !mobile || !gender || !address || !pincode)
-    return res.status(400).json({ success: false, message: "All fields are required" });
-
-  const profileData = {
-    profilePic: req.file ? `/uploads/${req.file.filename}` : null,
-    startupName,
-    username,
-    category,
-    mobile,
-    gender,
-    address,
-    pincode,
-  };
-
-  console.log("📌 Profile Saved:", profileData);
-  res.json({ success: true, message: "Profile saved successfully!", data: profileData });
-});
-
-// ================== RAZORPAY INTEGRATION ==================
-const razorpay = new Razorpay({
-  key_id: "rzp_test_xxxxxxxxxx",
-  key_secret: "xxxxxxxxxxxxxxxx",
-});
-
-app.post("/create-order", async (req, res) => {
-  try {
-    const { amount } = req.body;
-
-    const order = await razorpay.orders.create({
-      amount: amount * 100,
-      currency: "INR",
-      receipt: "receipt_" + Date.now(),
-    });
-
-    res.json({ success: true, order });
-  } catch (err) {
-    console.log("Order Error:", err);
-    res.status(500).json({ success: false, message: "Order creation failed" });
-  }
-});
-
-app.post("/verify-payment", (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-
-    const expectedSignature = crypto
-      .createHmac("sha256", razorpay.key_secret)
-      .update(razorpay_order_id + "|" + razorpay_payment_id)
-      .digest("hex");
-
-    if (expectedSignature === razorpay_signature) {
-      return res.json({ success: true });
-    } else {
-      return res.json({ success: false });
-    }
-  } catch (err) {
-    console.log("Verification Error:", err);
-    res.status(500).json({ success: false, message: "Verification failed" });
-  }
-});
-
-// ================== BACKEND FEATURE ROUTES ==================
-
-// KYC
-const kycRoutes = require('./routes/kycRoutes');
-app.use('/api/kyc', kycRoutes);
-
-// Notifications
-const notificationRoutes = require('./routes/notificationRoutes');
-app.use('/api/notifications', notificationRoutes);
-
-// Settings
-const settingsRoutes = require('./routes/settingsRoutes');
-app.use('/api/settings', settingsRoutes);
-
-// ================== TEST ROUTE ==================
+// Test
 app.get("/", (req, res) => {
-  res.send("🚀 FundHub backend is running!");
+  res.send("FundHub Backend Running 🚀");
 });
 
-// ================== START SERVER ==================
-app.listen(PORT, () =>
-  console.log(`🚀 Backend running at: http://localhost:${PORT}`)
-);
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend fully working ✅" });
+});
 
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend fully working ✅" });
+});
 
+// Routes
+const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const kycRoutes = require("./routes/kycRoutes");
+const paymentRoutes = require("./routes/payments");
 
+app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/kyc", kycRoutes);
+app.use("/api/payments", paymentRoutes);
 
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong" });
+});
 
+// Server
+const PORT = process.env.PORT || 5000;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+app.listen(PORT, () => {
+  console.log(`🚀 Backend running at: http://localhost:${PORT}`);
+});
