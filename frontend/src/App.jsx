@@ -12,21 +12,24 @@ import ProfilePage from "./pages/ProfilePage";
 import AddPost from "./pages/AddPost";
 import ManageCampaigns from "./pages/ManageCampaigns";
 import Chat from "./pages/Chat";
-import AppLayout from "./components/AppLayout";
 import Payment from "./pages/Payment";
 
-
-
+import AppLayout from "./components/AppLayout";
 
 export default function App() {
+
   const { user, loading } = useAuth();
 
   if (loading) return null;
 
   return (
     <Routes>
+
       {/* ROOT */}
-      <Route path="/" element={<Navigate to={user ? "/home" : "/login"} />} />
+      <Route
+        path="/"
+        element={<Navigate to={user ? "/home" : "/login"} />}
+      />
 
       {/* AUTH */}
       <Route path="/login" element={<Login />} />
@@ -37,9 +40,10 @@ export default function App() {
         path="/profile-setup"
         element={user ? <ProfileSetup /> : <Navigate to="/login" />}
       />
-      <Route path="/payment" element={<Payment />} />
-      {/* 🔥 APP LAYOUT (Sidebar + Protected Pages) */}
-      <Route element={<AppLayout />}>
+
+      {/* PROTECTED APP (SIDEBAR LAYOUT) */}
+      <Route element={user ? <AppLayout /> : <Navigate to="/login" />}>
+
         <Route path="/home" element={<Home />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/requests" element={<Requests />} />
@@ -48,10 +52,15 @@ export default function App() {
         <Route path="/add-post" element={<AddPost />} />
         <Route path="/manage" element={<ManageCampaigns />} />
         <Route path="/chat/:chatId" element={<Chat />} />
+
+        {/* PAYMENT PAGE */}
+        <Route path="/payment" element={<Payment />} />
+
       </Route>
 
       {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" />} />
+
     </Routes>
   );
 }

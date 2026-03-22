@@ -1,178 +1,222 @@
-// backend/server.js
+// ================= IMPORTS =================
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
+const admin = require("firebase-admin");
 
 const app = express();
 const PORT = 5000;
 
-// ================== MIDDLEWARE ==================
+console.log("🚀 SERVER FILE LOADED");
+
+// ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Ensure uploads folder exists
-if (!fs.existsSync(path.join(__dirname, "uploads"))) {
-  fs.mkdirSync(path.join(__dirname, "uploads"));
-  console.log("📁 'uploads' folder created automatically");
+// ================= FIREBASE =================
+const serviceAccount = require("./serviceAccountKey.json");
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
 }
 
-// ================== MULTER CONFIG ==================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads")),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname)),
-});
-const upload = multer({ storage });
+const db = admin.firestore();
 
-// ================== TEMP USER DB (TEMPORARY) ==================
-const users = [];
-
-// ================== AUTH ROUTES ==================
-
-// Signup
-app.post("/api/signup", (req, res) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password)
-    return res.status(400).json({ success: false, message: "All fields are required" });
-
-  const exists = users.find((u) => u.email === email);
-  if (exists)
-    return res.status(400).json({ success: false, message: "Email already exists" });
-
-  users.push({ username, email, password });
-  res.json({ success: true, message: "Signup successful" });
+// ================= TEST ROUTE =================
+app.get("/", (req, res) => {
+  res.send("✅ SERVER WORKING");
 });
 
-// Login
-app.post("/api/login", (req, res) => {
-  const { email, password } = req.body;
-
-  const user = users.find((u) => u.email === email && u.password === password);
-
-  if (!user)
-    return res.status(401).json({ success: false, message: "Invalid email or password" });
-
-  res.json({ success: true, user });
-});
-
-// ================== PROFILE UPLOAD ROUTE ==================
-app.post("/api/profile", upload.single("profilePic"), (req, res) => {
-  const { startupName, username, category, mobile, gender, address, pincode } =
-    req.body;
-
-  if (!startupName || !username || !category || !mobile || !gender || !address || !pincode)
-    return res.status(400).json({ success: false, message: "All fields are required" });
-
-  const profileData = {
-    profilePic: req.file ? `/uploads/${req.file.filename}` : null,
-    startupName,
-    username,
-    category,
-    mobile,
-    gender,
-    address,
-    pincode,
-  };
-
-  console.log("📌 Profile Saved:", profileData);
-  res.json({
-    success: true,
-    message: "Profile saved successfully!",
-    data: profileData,
-  });
-});
-
-// =============================================================
-//              🟦 RAZORPAY INTEGRATION (OPTION B)
-// =============================================================
-
-// 1️⃣ Create Razorpay Instance
+// ================= RAZORPAY INIT =================
 const razorpay = new Razorpay({
-  key_id: "rzp_test_xxxxxxxxxx",       // << REPLACE WITH YOUR KEY
-  key_secret: "xxxxxxxxxxxxxxxx",     // << REPLACE WITH YOUR SECRET
+  key_id: "rzp_test_SJSLW45U0hVH25",
+  key_secret: "5k8o00yYHxoGmv4BBYz8Zqvl",
 });
 
-// 2️⃣ Create Order API
+// ================= CREATE ORDER =================
 app.post("/create-order", async (req, res) => {
+
+  console.log("🟡 CREATE ORDER HIT");
+
   try {
+
     const { amount } = req.body;
 
-    const order = await razorpay.orders.create({
+    if (!amount) {
+      return res.json({
+        success: false,
+        message: "Amount missing",
+      });
+    }
+
+    const options = {
       amount: amount * 100,
       currency: "INR",
       receipt: "receipt_" + Date.now(),
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    console.log("✅ Order Created:", order.id);
+
+    return res.json({
+      success: true,
+      order,
     });
 
-    res.json({ success: true, order });
-  } catch (err) {
-    console.log("Order Error:", err);
-    res.status(500).json({ success: false, message: "Order creation failed" });
+  } catch (error) {
+
+    console.log("❌ ORDER ERROR:", error);
+
+    return res.json({
+      success: false,
+      error: error.message,
+    });
+
   }
+
 });
 
-// 3️⃣ Verify Payment API
-app.post("/verify-payment", (req, res) => {
+// ================= VERIFY PAYMENT =================
+app.post("/verify-razorpay", async (req, res) => {
+
+  console.log("\n==============================");
+  console.log("🔥 VERIFY PAYMENT API HIT");
+  console.log("BODY:", req.body);
+  console.log("==============================\n");
+
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-      req.body;
+
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      campaignId,
+      investorId,
+      amount
+    } = req.body;
+
+    if (!campaignId || !amount) {
+
+      return res.json({
+        success: false,
+        message: "campaignId or amount missing",
+      });
+
+    }
+
+    // ================= VERIFY SIGNATURE =================
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-      .createHmac("sha256", razorpay.key_secret)
-      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .createHmac("sha256", "5k8o00yYHxoGmv4BBYz8Zqvl")
+      .update(body.toString())
       .digest("hex");
 
-    if (expectedSignature === razorpay_signature) {
-      return res.json({ success: true });
-    } else {
-      return res.json({ success: false });
+    if (expectedSignature !== razorpay_signature) {
+
+      console.log("❌ Payment signature mismatch");
+
+      return res.json({
+        success: false,
+        message: "Payment verification failed",
+      });
+
     }
-  } catch (err) {
-    console.log("Verification Error:", err);
-    res.status(500).json({ success: false, message: "Verification failed" });
+
+    console.log("✅ Payment verified successfully");
+
+    // ================= UPDATE CAMPAIGN =================
+    const campaignRef = db.collection("campaigns").doc(campaignId);
+    const campaignDoc = await campaignRef.get();
+
+    if (!campaignDoc.exists) {
+
+      return res.json({
+        success: false,
+        message: "Campaign not found",
+      });
+
+    }
+
+    const campaignData = campaignDoc.data();
+
+    const newRaisedAmount =
+      (campaignData.raisedAmount || 0) + Number(amount);
+
+    await campaignRef.update({
+      raisedAmount: newRaisedAmount,
+    });
+
+    console.log("✅ Campaign updated");
+
+    // ================= UPDATE ESCROW =================
+    const escrowRef = db.collection("escrow_wallet").doc(campaignId);
+    const escrowDoc = await escrowRef.get();
+
+    if (!escrowDoc.exists) {
+
+      return res.json({
+        success: false,
+        message: "Escrow wallet not found",
+      });
+
+    }
+
+    const escrowData = escrowDoc.data();
+
+    const newTotalFunds =
+      (escrowData.totalFunds || 0) + Number(amount);
+
+    const newEscrowBalance =
+      (escrowData.escrowBalance || 0) + Number(amount);
+
+    await escrowRef.update({
+      totalFunds: newTotalFunds,
+      escrowBalance: newEscrowBalance,
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log("✅ Escrow wallet updated");
+
+    // ================= STORE INVESTMENT =================
+    const investmentRef = db.collection("investments").doc();
+
+    await investmentRef.set({
+      campaignId,
+      investorId: investorId || "anonymous",
+      amount,
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log("✅ Investment recorded");
+
+    return res.json({
+      success: true,
+      message: "Payment verified and investment recorded",
+      raisedAmount: newRaisedAmount,
+      escrowBalance: newEscrowBalance,
+    });
+
+  } catch (error) {
+
+    console.log("❌ VERIFY ERROR:", error);
+
+    return res.json({
+      success: false,
+      error: error.message,
+    });
+
   }
+
 });
 
-// ================== TEST ROUTE ==================
-app.get("/", (req, res) => {
-  res.send("🚀 FundHub backend is running!");
+// ================= START SERVER =================
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
-
-// ================== START SERVER ==================
-app.listen(PORT, () =>
-  console.log(`🚀 Backend running at: http://localhost:${PORT}`)
-);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

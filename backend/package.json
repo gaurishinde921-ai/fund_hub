@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
-  "type": "module",
-
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -21,6 +19,5 @@
     "firebase-admin": "^13.6.0",
     "multer": "^2.0.2",
     "razorpay": "^2.9.6"
-    
   }
 }
