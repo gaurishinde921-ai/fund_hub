@@ -1,0 +1,200 @@
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color: white;
+}
+
+/* PAGE CENTER */
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* WRAPPER */
+.content-wrapper {
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+/* CARD */
+.glass-card {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(25px);
+  border-radius: 20px;
+  padding: 40px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
+              0 0 40px rgba(59, 130, 246, 0.08);
+  box-sizing: border-box;
+}
+
+/* TITLE */
+.page-title {
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* INPUT */
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  border: 1px solid #1e293b;
+  background: #020617;
+  color: white;
+  font-size: 15px;
+  box-sizing: border-box;
+  display: block;
+}
+
+textarea.input {
+  height: auto;
+  padding: 14px;
+  resize: none;
+}
+
+/* RUPEE FIELD */
+.rupee-field {
+  position: relative;
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.rupee-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.rupee-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px 0 38px;
+  border-radius: 10px;
+  border: 1px solid #1e293b;
+  background: #020617;
+  color: white;
+  font-size: 15px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+/* FOCUS */
+.input:focus,
+.rupee-input:focus,
+select.input:focus {
+  border: 1px solid #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+  outline: none;
+}
+
+/* BUTTON */
+.primary-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  margin-top: 10px;
+}
+
+.primary-btn:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ROLE CARDS */
+.role-container {
+  display: flex;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.role-card {
+  flex: 1;
+  padding: 35px;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.role-card h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.role-card p {
+  margin: 0;
+  font-size: 15px;
+  color: #94a3b8;
+}
+
+.role-card:hover {
+  transform: translateY(-6px);
+  border: 1px solid rgba(59, 130, 246, 0.7);
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.7),
+    0 0 25px rgba(59, 130, 246, 0.35);
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .role-container {
+    flex-direction: column;
+  }
+}
+
+/* ========================= */
+/* ✅ DROPDOWN FINAL FIX */
+/* ========================= */
+
+select.input {
+  appearance: none;
+  background: #020617;
+  color: white;
+  cursor: pointer;
+}
+
+/* Placeholder style */
+select.input:invalid {
+  color: #94a3b8;
+}
+
+/* 🔥 MAIN FIX (text visible) */
+select.input option {
+  background-color: #020617;
+  color: white;
+}
+
+/* Arrow */
+select.input {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M5 7l5 5 5-5H5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}

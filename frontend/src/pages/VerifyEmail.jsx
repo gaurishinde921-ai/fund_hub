@@ -11,22 +11,39 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(auth.currentUser);
+  const [displayEmail, setDisplayEmail] = useState("");
   const [info, setInfo] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ FIX: Get email from localStorage if available
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("pendingUserEmail");
+    if (storedEmail) {
+      setDisplayEmail(storedEmail);
+    }
+  }, []);
+
   // 🔐 Watch auth user safely
   useEffect(() => {
     const interval = setInterval(() => {
-      setUser(auth.currentUser);
+      const currentUser = auth.currentUser;
+      setUser(currentUser);
+      
+      // If user is logged in, get their email
+      if (currentUser) {
+        setDisplayEmail(currentUser.email);
+      }
     }, 500);
 
     return () => clearInterval(interval);
   }, []);
 
-  // 🚫 If still no user → redirect login
+  // ✅ FIXED: Check localStorage before redirecting to login
   useEffect(() => {
-    if (user === null) {
+    const pending = localStorage.getItem("pendingVerification");
+    
+    if (user === null && pending !== "true") {
       const timer = setTimeout(() => {
         if (!auth.currentUser) {
           navigate("/login");
@@ -48,8 +65,12 @@ export default function VerifyEmail() {
       if (auth.currentUser.emailVerified) {
         setInfo("Email verified successfully ✅");
 
+        // ✅ FIX: Clear pending verification flag
+        localStorage.removeItem("pendingVerification");
+        localStorage.removeItem("pendingUserEmail");
+
         setTimeout(() => {
-          navigate("/home");
+          navigate("/select-role");
         }, 1200);
       } else {
         setError("Please verify your email first ❌");
@@ -67,20 +88,26 @@ export default function VerifyEmail() {
     setInfo("");
 
     try {
-      await sendEmailVerification(auth.currentUser);
-      setInfo("Verification email resent 📩");
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        setInfo("Verification email resent 📩");
+      } else {
+        setError("Session expired. Please login to resend.");
+      }
     } catch {
       setError("Unable to resend email. Try again later.");
     }
   };
 
   const logout = async () => {
+    localStorage.removeItem("pendingVerification");
+    localStorage.removeItem("pendingUserEmail");
     await signOut(auth);
     navigate("/login");
   };
 
-  // ⛔ Prevent blank crash render
-  if (!user) return null;
+  // ✅ FIX: Show content if we have email from localStorage, even if user is null
+  if (!user && !displayEmail) return null;
 
   return (
     <div style={styles.container}>
@@ -88,10 +115,10 @@ export default function VerifyEmail() {
         <h2 style={styles.title}>Verify Your Email</h2>
 
         <p style={styles.text}>
-          We’ve sent a verification link to:
+          We've sent a verification link to:
         </p>
 
-        <p style={styles.email}>{user.email}</p>
+        <p style={styles.email}>{displayEmail}</p>
 
         <p style={styles.subtext}>
           Please verify your email to continue using FundHub.
@@ -105,7 +132,7 @@ export default function VerifyEmail() {
           onClick={checkVerification}
           disabled={loading}
         >
-          I’ve Verified My Email
+          I've Verified My Email
         </button>
 
         <button style={styles.secondaryBtn} onClick={resendEmail}>

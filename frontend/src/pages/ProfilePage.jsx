@@ -1,212 +1,297 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
-import Sidebar from "../components/Sidebar";
+import { auth, db, storage } from "../firebase"; 
+import { 
+  doc, 
+  getDoc, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  deleteDoc, 
+  updateDoc 
+} from "firebase/firestore";
+import { 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from "firebase/storage";
+import { useAuth } from "../context/AuthContext"; 
 import "./ProfilePage.css";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
+  // ---------------------------------------------------------
+  // State Management
+  // ---------------------------------------------------------
   const [profile, setProfile] = useState({});
   const [campaigns, setCampaigns] = useState([]);
   const [drafts, setDrafts] = useState([]);
-  const [donations, setDonations] = useState([]);
-
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false); 
   const [activeTab, setActiveTab] = useState("campaigns");
+  const [openMenuId, setOpenMenuId] = useState(null);
 
-  /* ================= LOAD DATA ================= */
+  // Constants & Refs
+  const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f";
+  const coverInputRef = useRef(null);
+  const menuRef = useRef(null);
+
+  // ---------------------------------------------------------
+  // Event Handlers & Lifecycle
+  // ---------------------------------------------------------
   useEffect(() => {
-    setProfile(JSON.parse(localStorage.getItem("profile")) || {});
-    setCampaigns(JSON.parse(localStorage.getItem("campaigns")) || []);
-    setDrafts(JSON.parse(localStorage.getItem("drafts")) || []);
-    setDonations(JSON.parse(localStorage.getItem("donations")) || []);
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  /* ================= TOTAL FUNDS ================= */
-  const totalFunds = donations.reduce(
-    (sum, d) => sum + (Number(d.amount) || 0),
-    0
-  );
+  const fetchFullData = async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        setProfile(userDoc.data());
+      }
 
-  /* ================= PROFILE PHOTO ================= */
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const updated = { ...profile, photo: reader.result };
-      setProfile(updated);
-      localStorage.setItem("profile", JSON.stringify(updated));
-    };
-    reader.readAsDataURL(file);
+      const q = query(
+        collection(db, "campaigns"), 
+        where("ownerId", "==", user.uid)
+      );
+      
+      const snap = await getDocs(q);
+      const allPosts = snap.docs.map(d => ({ 
+        id: d.id, 
+        ...d.data() 
+      }));
+      
+      const pub = allPosts.filter(c => c.status === "published" || !c.status);
+      const drf = allPosts.filter(c => c.status === "draft");
+      
+      setCampaigns(pub);
+      setDrafts(drf);
+    } catch (err) {
+      console.error("Load Error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ================= COVER PHOTO ================= */
-  const handleCoverChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  useEffect(() => {
+    fetchFullData();
+  }, [user]);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const updated = { ...profile, cover: reader.result };
-      setProfile(updated);
-      localStorage.setItem("profile", JSON.stringify(updated));
-    };
-    reader.readAsDataURL(file);
+  // ---------------------------------------------------------
+  // Action Functions
+  // ---------------------------------------------------------
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !user) return;
+
+    try {
+      setUploading(true);
+      const storagePath = `covers/${user.uid}/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, storagePath);
+      
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        coverPic: downloadURL
+      });
+
+      setProfile(prev => ({ 
+        ...prev, 
+        coverPic: downloadURL 
+      }));
+      alert("Cover updated successfully! ✨");
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed. Check Storage Rules.");
+    } finally {
+      setUploading(false);
+    }
   };
 
-  /* ================= SHARE ================= */
-  const shareProfile = () => {
-    navigator.clipboard.writeText(
-      `${window.location.origin}/profile/${profile.username || ""}`
+  const handleShareProfile = () => {
+    const url = `${window.location.origin}/profile/${user.uid}`;
+    navigator.clipboard.writeText(url);
+    alert("Profile link copied to clipboard! 👤");
+  };
+
+  const handleShare = (id) => {
+    const url = `${window.location.origin}/campaign/${id}`;
+    navigator.clipboard.writeText(url);
+    alert("Campaign link copied! 📋");
+    setOpenMenuId(null);
+  };
+
+  const handleDelete = async (postId) => {
+    setOpenMenuId(null);
+    const confirm = window.confirm("Are you sure you want to delete this campaign?");
+    if (confirm) {
+      try {
+        await deleteDoc(doc(db, "campaigns", postId));
+        alert("Deleted successfully.");
+        fetchFullData();
+      } catch (err) {
+        alert("Delete failed.");
+      }
+    }
+  };
+
+  const totalFunds = campaigns.reduce((sum, c) => {
+    return sum + (Number(c.raised) || 0);
+  }, 0);
+
+  // ---------------------------------------------------------
+  // Render Logic
+  // ---------------------------------------------------------
+  if (loading) {
+    return (
+      <div className="loader-full-page">
+        <div className="spinner"></div>
+      </div>
     );
-    alert("Profile link copied 📋");
-  };
-
-  /* ================= LOGOUT ================= */
-  const handleLogout = async () => {
-    await signOut(auth);
-    localStorage.clear();
-    navigate("/login", { replace: true });
-  };
+  }
 
   return (
-    <div className="profile-layout">
-      <Sidebar />
-
-      <div className="profile-container">
-        {/* ================= COVER ================= */}
-        <div className="profile-banner">
-          <img
-            src={
-              profile.cover ||
-              "https://images.unsplash.com/photo-1557683316-973673baf926"
-            }
-            alt="cover"
-            className="cover-img"
-          />
-
-          <label className="cover-upload">
-            Change Cover
-            <input type="file" hidden onChange={handleCoverChange} />
-          </label>
-        </div>
-
-        {/* ================= HEADER ================= */}
-        <div className="profile-header">
-          <div className="profile-left">
-            <label className="avatar-wrapper">
-              <img
-                src={
-                  profile.photo ||
-                  "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                }
-                alt="profile"
-              />
-              <input type="file" hidden onChange={handlePhotoChange} />
-            </label>
-
-            <div className="profile-info">
-              <h2>{profile.name || "Your Name"}</h2>
-              <p className="username">@{profile.username || "username"}</p>
-              <p className="bio">{profile.bio || "No bio added yet"}</p>
-            </div>
+    <div className="profile-container">
+      <div className="profile-banner">
+        <img 
+          src={profile.coverPic || "https://images.unsplash.com/photo-1557683316-973673baf926"} 
+          alt="cover" 
+          className="cover-img" 
+        />
+        {uploading && (
+          <div className="upload-overlay">
+            <div className="spinner small"></div>
+            <span className="upload-text">Uploading...</span>
           </div>
+        )}
+        <button 
+          className="edit-cover-btn" 
+          onClick={() => coverInputRef.current.click()} 
+          disabled={uploading}
+        >
+          {uploading ? "Wait..." : "📷 Edit Cover"}
+        </button>
+        <input 
+          type="file" 
+          ref={coverInputRef} 
+          style={{ display: 'none' }} 
+          accept="image/*" 
+          onChange={handleCoverUpload} 
+        />
+      </div>
 
-          <div className="profile-actions">
-            <button onClick={() => navigate("/edit-profile")}>
-              Edit Profile
-            </button>
-            <button onClick={shareProfile}>Share</button>
-            <button onClick={handleLogout}>Logout</button>
+      <div className="profile-header">
+        <div className="profile-left">
+          <div className="avatar-wrapper">
+            <img 
+              src={profile.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"} 
+              alt="profile" 
+            />
+          </div>
+          <div className="profile-info">
+            <h2>{profile.fullName || profile.username || "User"}</h2>
+            <p className="username">@{profile.username || "handle"}</p>
+            <p className="bio">{profile.bio || "No bio added yet"}</p>
           </div>
         </div>
-
-        {/* ================= STATS ================= */}
-        <div className="stats-row">
-          <div className="stat-box">
-            <h3 className="stat-value">{campaigns.length}</h3>
-            <p>Campaigns</p>
-          </div>
-
-          <div className="stat-box">
-            <h3 className="stat-value">₹{totalFunds}</h3>
-            <p>Funds Raised</p>
-          </div>
-
-          <div className="stat-box">
-            <h3 className="stat-value">{donations.length}</h3>
-            <p>Supporters</p>
-          </div>
+        <div className="profile-actions">
+          <button onClick={handleShareProfile}>Share Profile</button>
+          <button onClick={() => navigate("/edit-profile")}>Edit Profile</button>
+          <button onClick={() => signOut(auth)} className="logout-btn">Logout</button>
         </div>
+      </div>
 
-        {/* ================= TABS ================= */}
-        <div className="tabs">
-          {["campaigns", "drafts", "donations", "liked", "saved"].map((tab) => (
-            <button
-              key={tab}
-              className={activeTab === tab ? "active" : ""}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === "donations" ? "Donations Received" : tab}
-            </button>
-          ))}
+      <div className="stats-row">
+        <div className="stat-box">
+          <h3>{campaigns.length}</h3>
+          <p>Campaigns</p>
         </div>
+        <div className="stat-box">
+          <h3>₹{totalFunds}</h3>
+          <p>Funds Raised</p>
+        </div>
+        <div className="stat-box">
+          <h3>0</h3>
+          <p>Supporters</p>
+        </div>
+      </div>
 
-        {/* ================= CONTENT ================= */}
-        <div className="content-box">
-          {activeTab === "campaigns" &&
-            (campaigns.length === 0 ? (
-              <button
-                className="add-btn"
-                onClick={() => navigate("/add-post")}
-              >
-                + Add Campaign
-              </button>
-            ) : (
-              <div className="campaign-grid">
-                {campaigns.map((c, i) => (
-                  <div key={i} className="campaign-card">
-                    <img
-                      src={
-                        c.image ||
-                        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f"
-                      }
-                      alt="campaign"
-                      className="campaign-img"
-                    />
+      <div className="tabs">
+        {["campaigns", "drafts", "donations", "liked", "saved"].map((tab) => (
+          <button 
+            key={tab} 
+            className={activeTab === tab ? "active" : ""} 
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab === "donations" ? "Donations Received" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
 
-                    <div className="campaign-body">
-                      <h4>{c.title}</h4>
-
-                      <p className="campaign-amount">
-                        ₹{c.raised || 0} raised of ₹{c.goal || 0}
-                      </p>
-
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{
-                            width: `${
-                              c.goal
-                                ? Math.min((c.raised / c.goal) * 100, 100)
-                                : 0
-                            }%`,
-                          }}
-                        />
-                      </div>
+      <div className="content-box">
+        <div className="campaign-grid">
+          {(activeTab === "campaigns" ? campaigns : drafts).map((item) => {
+            const goalVal = item.goal || 0;
+            const raisedVal = item.raised || 0;
+            const progress = goalVal > 0 ? Math.min((raisedVal / goalVal) * 100, 100) : 0;
+            
+            return (
+              <div key={item.id} className="campaign-card">
+                <img 
+                  src={item.mediaUrls?.[0] || DEFAULT_IMAGE} 
+                  alt="campaign" 
+                  className="campaign-card-img"
+                />
+                
+                {/* OVERLAY MENU - Simple dots style */}
+                <div 
+                  className="card-menu-container" 
+                  ref={openMenuId === item.id ? menuRef : null}
+                >
+                  <button 
+                    className="menu-dots-btn" 
+                    onClick={() => setOpenMenuId(openMenuId === item.id ? null : item.id)}
+                  >
+                    ⋮
+                  </button>
+                  {openMenuId === item.id && (
+                    <div className="dropdown-menu">
+                      <button onClick={() => navigate(`/add-post/${item.id}`)}>Edit</button>
+                      <button onClick={() => handleShare(item.id)}>Share</button>
+                      <hr className="menu-divider" />
+                      <button className="delete-option" onClick={() => handleDelete(item.id)}>Delete</button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ))}
+                  )}
+                </div>
 
-          {activeTab === "drafts" && <p>No drafts available</p>}
-          {activeTab === "donations" && <p>No donations yet</p>}
-          {activeTab === "liked" && <p>No liked campaigns</p>}
-          {activeTab === "saved" && <p>No saved campaigns</p>}
+                <div className="campaign-body">
+                  <h4 className="campaign-title-text">{item.title || "Untitled"}</h4>
+                  <div className="mini-progress">
+                    <div className="mini-bar" style={{ width: `${progress}%` }}></div>
+                  </div>
+                  <div className="amount-row">
+                     <p className="amount-text">₹{raisedVal} / ₹{goalVal}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -34,7 +34,14 @@ export default function Login() {
       }
 
       localStorage.setItem("isLoggedIn", "true");
-      navigate("/home", { replace: true });
+
+      // ✅ FIXED: Check if user has selected a role
+      const userRole = localStorage.getItem("role");
+      if (!userRole) {
+        navigate("/select-role", { replace: true });
+      } else {
+        navigate("/home", { replace: true });
+      }
     } catch (err) {
       setError("Invalid email or password");
     } finally {
@@ -110,7 +117,7 @@ export default function Login() {
         </button>
 
         <p style={styles.text}>
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link to="/signup" style={styles.link}>
             Sign up
           </Link>

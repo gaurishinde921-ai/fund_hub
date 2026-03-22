@@ -1,21 +1,17 @@
-// src/pages/EditProfile.jsx
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { auth, db, storage } from "../firebase";
+import { auth, db } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import "./EditProfile.css";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
-    name: "",
+    fullName: "",
     username: "",
     bio: "",
     location: "",
@@ -24,7 +20,6 @@ export default function EditProfile() {
   const [preview, setPreview] = useState("");
   const [file, setFile] = useState(null);
 
-  /* ================= GET USER ================= */
   const user = auth.currentUser;
 
   useEffect(() => {
@@ -40,15 +35,13 @@ export default function EditProfile() {
 
         if (snap.exists()) {
           const data = snap.data();
-
           setForm({
-            name: data.name || "",
+            fullName: data.fullName || data.name || "",
             username: data.username || "",
             bio: data.bio || "",
             location: data.location || "",
           });
-
-          setPreview(data.photo || "");
+          setPreview(data.profilePic || data.photo || "");
         }
       } catch (err) {
         console.error("Load error:", err);
@@ -60,160 +53,136 @@ export default function EditProfile() {
     loadProfile();
   }, [user, navigate]);
 
-  /* ================= INPUT ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
   };
 
-  /* ================= PHOTO ================= */
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-
     setFile(f);
     setPreview(URL.createObjectURL(f));
   };
 
-  /* ================= SAVE ================= */
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setSaving(true);
 
-  setSaving(true);
+    try {
+      let finalPhoto = preview;
 
-  try {
-    let photoURL = preview;
+      // Handle image if a new file was picked
+      if (file) {
+        finalPhoto = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+      }
 
-    // If new photo selected → convert to base64
-    if (file) {
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        photoURL = reader.result;
-
-        const updatedProfile = {
-          ...form,
-          photo: photoURL,
-        };
-
-        // SAVE LOCALLY
-        localStorage.setItem(
-          "profile",
-          JSON.stringify(updatedProfile)
-        );
-
-        alert("Profile updated (Local) ✅");
-        navigate("/profile");
+      const updatedData = {
+        ...form,
+        profilePic: finalPhoto,
+        updatedAt: new Date().toISOString(),
       };
 
-      reader.readAsDataURL(file);
+      // 🔥 THE FIX: Save to FIRESTORE, not just localStorage
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, updatedData, { merge: true });
 
-      return; // stop further execution
+      alert("Profile updated successfully! ✅");
+      navigate("/profile");
+    } catch (err) {
+      console.error(err);
+      alert("Save failed ❌");
+    } finally {
+      setSaving(false);
     }
+  };
 
-    // If no new photo
-    const updatedProfile = {
-      ...form,
-      photo: photoURL,
-    };
-
-    localStorage.setItem(
-      "profile",
-      JSON.stringify(updatedProfile)
-    );
-
-    alert("Profile updated (Local) ✅");
-    navigate("/profile");
-  } catch (err) {
-    console.error(err);
-    alert("Save failed ❌");
-  } finally {
-    setSaving(false);
-  }
-};
-
-  /* ================= LOADER ================= */
   if (loading) {
     return (
       <div className="edit-layout">
         <Sidebar />
         <div className="edit-main">
-          <p>Loading...</p>
+          <div className="loader">Loading Profile...</div>
         </div>
       </div>
     );
   }
 
-  /* ================= UI ================= */
   return (
     <div className="edit-layout">
       <Sidebar />
 
       <div className="edit-main">
         <div className="edit-card">
-          <h2>Edit Profile</h2>
+          <div className="edit-header">
+            <h2>Edit Profile</h2>
+            <p>Update your information to build trust with donors.</p>
+          </div>
 
           <div className="edit-avatar-section">
             <div className="edit-avatar">
-              {preview ? <img src={preview} alt="" /> : <span>U</span>}
+              {preview ? <img src={preview} alt="Avatar" /> : <span>{form.fullName?.charAt(0) || "U"}</span>}
             </div>
 
             <label className="edit-upload-btn">
               Change Photo
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleFileChange}
-              />
+              <input type="file" accept="image/*" hidden onChange={handleFileChange} />
             </label>
           </div>
 
           <form onSubmit={handleSubmit} className="edit-form">
-            <label>Full Name</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-            />
+            <div className="input-box">
+              <label>Full Name</label>
+              <input
+                name="fullName"
+                placeholder="Enter your full name"
+                value={form.fullName}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-            <label>Username</label>
-            <input
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-            />
+            <div className="input-box">
+              <label>Username</label>
+              <input
+                name="username"
+                placeholder="username"
+                value={form.username}
+                onChange={handleChange}
+              />
+            </div>
 
-            <label>Bio</label>
-            <textarea
-              name="bio"
-              value={form.bio}
-              onChange={handleChange}
-              rows={3}
-            />
+            <div className="input-box">
+              <label>Bio</label>
+              <textarea
+                name="bio"
+                placeholder="Write a short bio about yourself..."
+                value={form.bio}
+                onChange={handleChange}
+                rows={3}
+              />
+            </div>
 
-            <label>Location</label>
-            <input
-              name="location"
-              value={form.location}
-              onChange={handleChange}
-            />
+            <div className="input-box">
+              <label>Location</label>
+              <input
+                name="location"
+                placeholder="City, Country"
+                value={form.location}
+                onChange={handleChange}
+              />
+            </div>
 
             <div className="edit-actions">
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => navigate("/profile")}
-              >
+              <button type="button" className="cancel-btn" onClick={() => navigate("/profile")}>
                 Cancel
               </button>
-
-              <button
-                type="submit"
-                className="save-btn"
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save Changes"}
+              <button type="submit" className="save-btn" disabled={saving}>
+                {saving ? "Saving Changes..." : "Save Changes"}
               </button>
             </div>
           </form>

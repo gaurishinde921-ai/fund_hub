@@ -1,12 +1,21 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 
+/* AUTH PAGES */
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import VerifyEmail from "./pages/VerifyEmail";
+import Landing from "./pages/Landing";
+
+/* NEW ROLE FLOW */
+import SelectRole from "./pages/SelectRole";
+import EntrepreneurSetup from "./pages/setup/EntrepreneurSetup";
+import InvestorSetup from "./pages/setup/InvestorSetup";
+
+/* MAIN APP */
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
-import ProfileSetup from "./pages/ProfileSetup";
 import Requests from "./pages/Requests";
 import Subscription from "./pages/Subscription";
 import ProfilePage from "./pages/ProfilePage";
@@ -16,61 +25,84 @@ import Chat from "./pages/Chat";
 import EditProfile from "./pages/EditProfile";
 import Payment from "./pages/Payment";
 
+/* LAYOUT */
 import AppLayout from "./components/AppLayout";
 
 export default function App() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
+  
+  // State to track if we should actually show the spinner
+  const [shouldShowSpinner, setShouldShowSpinner] = useState(false);
 
-  // 🔒 HOLD ROUTER until auth ready
-  if (loading) {
-    return null;
+  useEffect(() => {
+    let timer;
+    if (authLoading) {
+      // ⏳ Only show spinner if loading takes more than 300ms
+      timer = setTimeout(() => {
+        setShouldShowSpinner(true);
+      }, 300);
+    } else {
+      setShouldShowSpinner(false);
+    }
+
+    return () => clearTimeout(timer);
+  }, [authLoading]);
+
+  // If Auth is still working but hasn't hit the 300ms threshold, show a blank background
+  // This prevents the "flash" of a spinner on fast connections
+  if (authLoading && !shouldShowSpinner) {
+    return <div style={{ backgroundColor: "#0a0a0f", minHeight: "100vh" }} />;
+  }
+
+  if (shouldShowSpinner) {
+    return (
+      <div className="global-spinner-overlay">
+        <style>
+          {`
+            .global-spinner-overlay {
+              position: fixed;
+              top: 0; left: 0; width: 100%; height: 100%;
+              background-color: #0a0a0f;
+              display: flex; flex-direction: column;
+              justify-content: center; align-items: center;
+              z-index: 10000;
+            }
+            .loading-ring {
+              width: 40px; height: 40px;
+              border: 4px solid rgba(255, 255, 255, 0.1);
+              border-top: 4px solid #ff0000;
+              border-radius: 50%;
+              animation: spin-animation 0.8s linear infinite;
+            }
+            @keyframes spin-animation {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+        <div className="loading-ring"></div>
+      </div>
+    );
   }
 
   return (
     <Routes>
-      {/* ROOT */}
-      <Route
-        path="/"
-        element={
-          user ? (
-            user.emailVerified ? (
-              <Navigate to="/home" />
-            ) : (
-              <Navigate to="/verify-email" />
-            )
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      />
-
-      {/* AUTH */}
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-
-      {/* VERIFY EMAIL */}
       <Route path="/verify-email" element={<VerifyEmail />} />
 
-      {/* PROFILE SETUP */}
-      <Route
-        path="/profile-setup"
-        element={user ? <ProfileSetup /> : <Navigate to="/login" />}
-      />
-
-      {/* PAYMENT (friend feature) */}
-      <Route path="/payment" element={<Payment />} />
-
-      {/* 🔐 PROTECTED APP (with sidebar) */}
       <Route
         element={
           user ? (
             user.emailVerified ? (
               <AppLayout />
             ) : (
-              <Navigate to="/verify-email" />
+              location.pathname !== "/verify-email" && <Navigate to="/verify-email" replace />
             )
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/login" replace />
           )
         }
       >
@@ -81,12 +113,12 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/add-post" element={<AddPost />} />
+        <Route path="/add-post/:id" element={<AddPost />} />
         <Route path="/manage" element={<ManageCampaigns />} />
         <Route path="/chat/:chatId" element={<Chat />} />
       </Route>
 
-      {/* FALLBACK */}
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
