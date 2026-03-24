@@ -11,20 +11,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Static
+// Static folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Test
+// Test routes
 app.get("/", (req, res) => {
   res.send("FundHub Backend Running 🚀");
 });
 
-app.get("/api/test", (req, res) => {
-  res.json({ message: "Backend fully working ✅" });
-});
-
-app.get("/api/test", (req, res) => {
-  res.json({ message: "Backend fully working ✅" });
+app.get("/api", (req, res) => {
+  res.send("API is working ✅");
 });
 
 // Routes
@@ -45,10 +41,13 @@ app.use("/api/payments", paymentRoutes);
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong" });
+  res.status(500).json({
+    success: false,
+    message: "Something went wrong"
+  });
 });
 
-// Server
+// Server start
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

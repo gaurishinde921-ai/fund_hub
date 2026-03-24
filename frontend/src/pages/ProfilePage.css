@@ -182,6 +182,7 @@
 .campaign-card:hover {
   transform: translateY(-4px);
   border-color: #3b82f6;
+<<<<<<< HEAD
 }
 
 .campaign-img {
@@ -231,3 +232,52 @@
 }
 
 
+=======
+}
+
+.campaign-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.campaign-body {
+  padding: 14px 16px;
+}
+
+.campaign-body h4 {
+  color: white;
+  margin-bottom: 6px;
+}
+
+.campaign-amount {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* ================= PROGRESS ================= */
+
+.progress-bar {
+  height: 6px;
+  background: #1e293b;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #9333ea);
+}
+
+/* ================= ADD BUTTON ================= */
+
+.add-btn {
+  padding: 12px 22px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 24px;
+  color: white;
+  cursor: pointer;
+}
+>>>>>>> 99b4aecbc576cf233252d134f25c8a3ef5e4c22b
