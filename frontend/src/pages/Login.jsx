@@ -26,16 +26,22 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
-      // 🔥 BLOCK UNVERIFIED EMAILS
+      // 🔐 If email NOT verified → redirect to VerifyEmail page
       if (!auth.currentUser.emailVerified) {
-        setError("Please verify your email before logging in");
         await signOut(auth);
-        setLoading(false);
+        navigate("/verify-email");
         return;
       }
 
       localStorage.setItem("isLoggedIn", "true");
-      navigate("/home", { replace: true });
+
+      // ✅ FIXED: Check if user has selected a role
+      const userRole = localStorage.getItem("role");
+      if (!userRole) {
+        navigate("/select-role", { replace: true });
+      } else {
+        navigate("/home", { replace: true });
+      }
     } catch (err) {
       setError("Invalid email or password");
     } finally {
@@ -111,7 +117,7 @@ export default function Login() {
         </button>
 
         <p style={styles.text}>
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link to="/signup" style={styles.link}>
             Sign up
           </Link>
@@ -151,7 +157,7 @@ const EyeOffIcon = (
   </svg>
 );
 
-/* STYLES */
+/* STYLES (unchanged) */
 const styles = {
   container: {
     minHeight: "100vh",
@@ -181,9 +187,7 @@ const styles = {
     background: "#020617",
     color: "white",
   },
-  passwordWrap: {
-    position: "relative",
-  },
+  passwordWrap: { position: "relative" },
   eyeBtn: {
     position: "absolute",
     right: "10px",

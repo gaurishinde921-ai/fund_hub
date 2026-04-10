@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
   sendEmailVerification,
-  signOut,
   reload,
+  signOut,
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -10,61 +10,104 @@ import { useNavigate } from "react-router-dom";
 export default function VerifyEmail() {
   const navigate = useNavigate();
 
-  const [checking, setChecking] = useState(true);
+  const [user, setUser] = useState(auth.currentUser);
+  const [displayEmail, setDisplayEmail] = useState("");
   const [info, setInfo] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // ✅ FIX: Get email from localStorage if available
   useEffect(() => {
-    const user = auth.currentUser;
-
-    if (!user) {
-      navigate("/login");
-      return;
+    const storedEmail = localStorage.getItem("pendingUserEmail");
+    if (storedEmail) {
+      setDisplayEmail(storedEmail);
     }
+  }, []);
 
-    if (user.emailVerified) {
-      navigate("/profile-setup");
-    } else {
-      setChecking(false);
+  // 🔐 Watch auth user safely
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentUser = auth.currentUser;
+      setUser(currentUser);
+      
+      // If user is logged in, get their email
+      if (currentUser) {
+        setDisplayEmail(currentUser.email);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ FIXED: Check localStorage before redirecting to login
+  useEffect(() => {
+    const pending = localStorage.getItem("pendingVerification");
+    
+    if (user === null && pending !== "true") {
+      const timer = setTimeout(() => {
+        if (!auth.currentUser) {
+          navigate("/login");
+        }
+      }, 1500);
+
+      return () => clearTimeout(timer);
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
   const checkVerification = async () => {
     setError("");
     setInfo("Checking verification status...");
+    setLoading(true);
 
     try {
       await reload(auth.currentUser);
 
       if (auth.currentUser.emailVerified) {
-        navigate("/profile-setup");
+        setInfo("Email verified successfully ✅");
+
+        // ✅ FIX: Clear pending verification flag
+        localStorage.removeItem("pendingVerification");
+        localStorage.removeItem("pendingUserEmail");
+
+        setTimeout(() => {
+          navigate("/select-role");
+        }, 1200);
       } else {
+        setError("Please verify your email first ❌");
         setInfo("");
-        setError("Email not verified yet. Please check your inbox.");
       }
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const resendVerification = async () => {
+  const resendEmail = async () => {
     setError("");
     setInfo("");
 
     try {
-      await sendEmailVerification(auth.currentUser);
-      setInfo("Verification email resent 📩");
-    } catch (err) {
-      setError("Unable to resend verification email.");
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        setInfo("Verification email resent 📩");
+      } else {
+        setError("Session expired. Please login to resend.");
+      }
+    } catch {
+      setError("Unable to resend email. Try again later.");
     }
   };
 
   const logout = async () => {
+    localStorage.removeItem("pendingVerification");
+    localStorage.removeItem("pendingUserEmail");
     await signOut(auth);
     navigate("/login");
   };
 
-  if (checking) return null;
+  // ✅ FIX: Show content if we have email from localStorage, even if user is null
+  if (!user && !displayEmail) return null;
 
   return (
     <div style={styles.container}>
@@ -72,10 +115,10 @@ export default function VerifyEmail() {
         <h2 style={styles.title}>Verify Your Email</h2>
 
         <p style={styles.text}>
-          We’ve sent a verification link to:
+          We've sent a verification link to:
         </p>
 
-        <p style={styles.email}>{auth.currentUser.email}</p>
+        <p style={styles.email}>{displayEmail}</p>
 
         <p style={styles.subtext}>
           Please verify your email to continue using FundHub.
@@ -84,12 +127,16 @@ export default function VerifyEmail() {
         {info && <p style={styles.info}>{info}</p>}
         {error && <p style={styles.error}>{error}</p>}
 
-        <button style={styles.primaryBtn} onClick={checkVerification}>
-          I’ve Verified My Email
+        <button
+          style={styles.primaryBtn}
+          onClick={checkVerification}
+          disabled={loading}
+        >
+          I've Verified My Email
         </button>
 
-        <button style={styles.secondaryBtn} onClick={resendVerification}>
-          Resend Email
+        <button style={styles.secondaryBtn} onClick={resendEmail}>
+          Resend Verification Email
         </button>
 
         <button style={styles.logoutBtn} onClick={logout}>
@@ -100,7 +147,7 @@ export default function VerifyEmail() {
   );
 }
 
-/* 🎨 STYLES */
+/* STYLES */
 const styles = {
   container: {
     minHeight: "100vh",
@@ -108,7 +155,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     background: "linear-gradient(135deg, #020617, #0f172a)",
-    fontFamily: "Inter, sans-serif",
   },
   card: {
     width: "420px",
@@ -129,7 +175,7 @@ const styles = {
   email: {
     color: "#38bdf8",
     fontWeight: "600",
-    margin: "8px 0 12px",
+    margin: "8px 0",
     wordBreak: "break-all",
   },
   subtext: {
@@ -159,10 +205,18 @@ const styles = {
     marginBottom: "10px",
   },
   logoutBtn: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "8px",
+    background: "none",
     border: "none",
-    background: "transparent",
     color: "#f87171",
     cursor: "pointer",
+    fontSize: "13px",
+  },
+  info: {
+    color: "#4ade80",
+    marginBottom: "10px",
+  },
+  error: {
+    color: "#f87171",
+    marginBottom: "10px",
+  },
+};

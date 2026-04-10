@@ -99,13 +99,11 @@ app.post("/verify-razorpay", async (req, res) => {
       amount
     } = req.body;
 
-    if (!campaignId || !amount) {
-
+    if (!amount) {
       return res.json({
         success: false,
-        message: "campaignId or amount missing",
+        message: "Amount missing",
       });
-
     }
 
     // ================= VERIFY SIGNATURE =================
@@ -129,78 +127,88 @@ app.post("/verify-razorpay", async (req, res) => {
 
     console.log("✅ Payment verified successfully");
 
-    // ================= UPDATE CAMPAIGN =================
-    const campaignRef = db.collection("campaigns").doc(campaignId);
-    const campaignDoc = await campaignRef.get();
+    // ================= CAMPAIGN UPDATE (ONLY IF EXISTS) =================
+    if (campaignId) {
 
-    if (!campaignDoc.exists) {
+      const campaignRef = db.collection("campaigns").doc(campaignId);
+      const campaignDoc = await campaignRef.get();
 
-      return res.json({
-        success: false,
-        message: "Campaign not found",
-      });
+      if (campaignDoc.exists) {
 
+        const campaignData = campaignDoc.data();
+
+        const newRaisedAmount =
+          (campaignData.raisedAmount || 0) + Number(amount);
+
+        await campaignRef.update({
+          raisedAmount: newRaisedAmount,
+        });
+
+        console.log("✅ Campaign updated");
+      }
     }
 
-    const campaignData = campaignDoc.data();
+    // ================= ESCROW UPDATE (ONLY IF EXISTS) =================
+    if (campaignId) {
 
-    const newRaisedAmount =
-      (campaignData.raisedAmount || 0) + Number(amount);
+      const escrowRef = db.collection("escrow_wallet").doc(campaignId);
+      const escrowDoc = await escrowRef.get();
 
-    await campaignRef.update({
-      raisedAmount: newRaisedAmount,
-    });
+      if (escrowDoc.exists) {
 
-    console.log("✅ Campaign updated");
+        const escrowData = escrowDoc.data();
 
-    // ================= UPDATE ESCROW =================
-    const escrowRef = db.collection("escrow_wallet").doc(campaignId);
-    const escrowDoc = await escrowRef.get();
+        const newTotalFunds =
+          (escrowData.totalFunds || 0) + Number(amount);
 
-    if (!escrowDoc.exists) {
+        const newEscrowBalance =
+          (escrowData.escrowBalance || 0) + Number(amount);
 
-      return res.json({
-        success: false,
-        message: "Escrow wallet not found",
-      });
+        await escrowRef.update({
+          totalFunds: newTotalFunds,
+          escrowBalance: newEscrowBalance,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
+        console.log("✅ Escrow wallet updated");
+      }
     }
-
-    const escrowData = escrowDoc.data();
-
-    const newTotalFunds =
-      (escrowData.totalFunds || 0) + Number(amount);
-
-    const newEscrowBalance =
-      (escrowData.escrowBalance || 0) + Number(amount);
-
-    await escrowRef.update({
-      totalFunds: newTotalFunds,
-      escrowBalance: newEscrowBalance,
-      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    console.log("✅ Escrow wallet updated");
 
     // ================= STORE INVESTMENT =================
-    const investmentRef = db.collection("investments").doc();
+    if (campaignId) {
 
-    await investmentRef.set({
-      campaignId,
-      investorId: investorId || "anonymous",
-      amount,
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+      const investmentRef = db.collection("investments").doc();
 
-    console.log("✅ Investment recorded");
+      await investmentRef.set({
+        campaignId,
+        investorId: investorId || "anonymous",
+        amount,
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log("✅ Investment recorded");
+    }
+
+    // ================= SUBSCRIPTION UPDATE =================
+    if (investorId && !campaignId) {
+
+      await db.collection("users").doc(investorId).set(
+        {
+          subscription: true,
+          subscriptionDate: admin.firestore.FieldValue.serverTimestamp(),
+          amountPaid: amount,
+        },
+        { merge: true }
+      );
+
+      console.log("✅ Subscription updated");
+    }
 
     return res.json({
       success: true,
-      message: "Payment verified and investment recorded",
-      raisedAmount: newRaisedAmount,
-      escrowBalance: newEscrowBalance,
+      message: "Payment processed successfully",
     });
 
   } catch (error) {

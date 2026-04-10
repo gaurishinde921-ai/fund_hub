@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  updateProfile,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
@@ -18,6 +19,14 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  /* ================= HANDLERS ================= */
+
+  const handleUsernameChange = (e) => {
+    // Blocks spaces instantly and forces lowercase
+    const val = e.target.value.toLowerCase().replace(/\s+/g, "");
+    setUsername(val);
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
@@ -30,27 +39,35 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      const user = res.user;
 
-      await sendEmailVerification(res.user);
+      // Update Auth Profile for immediate UI reflection
+      await updateProfile(user, { displayName: username });
 
-      await setDoc(doc(db, "users", res.user.uid), {
-        uid: res.user.uid,
-        username,
-        email,
+      await sendEmailVerification(user);
+
+      // Save to Firestore with empty fields for Onboarding Check
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        username: username,
+        email: email,
+        fullName: "",        
+        bio: "",             
+        profilePic: "",      
+        coverPic: "",        
         emailVerified: false,
         profileCompleted: false,
         subscription: "free",
         createdAt: serverTimestamp(),
       });
 
+      localStorage.setItem("pendingVerification", "true");
       navigate("/verify-email");
+
     } catch (err) {
-      setError("Email already in use or invalid");
+      console.error(err);
+      setError("Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -61,16 +78,28 @@ export default function Signup() {
       <form className="auth-box" onSubmit={handleSignup}>
         <h2>Create Account</h2>
 
-        <input
-          type="text"
-          placeholder="Username"
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
+        <div className="input-group">
+          <input
+            type="text"
+            // UPDATED PROFESSIONAL PLACEHOLDER
+            placeholder="Username (e.g. startup_founder)"
+            value={username}
+            onChange={handleUsernameChange}
+            pattern="^[a-z0-9_.]+$"
+            title="Usernames can only contain lowercase letters, numbers, underscores, and dots. No spaces allowed."
+            required
+          />
+          {username && (
+            <small className="handle-preview">
+              Your profile link: fundhub.com/@{username}
+            </small>
+          )}
+        </div>
 
         <input
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
@@ -83,7 +112,6 @@ export default function Signup() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-
           <button
             type="button"
             className="password-toggle"
@@ -95,7 +123,7 @@ export default function Signup() {
 
         {error && <p className="error">{error}</p>}
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} className="signup-btn">
           {loading ? "Creating..." : "Create Account"}
         </button>
 

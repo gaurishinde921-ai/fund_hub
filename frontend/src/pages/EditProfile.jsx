@@ -1,58 +1,57 @@
-// src/pages/EditProfile.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { auth, db, storage } from "../firebase";
+import { auth, db } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import "./EditProfile.css";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("user");
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
-    name: "",
+    fullName: "",
     username: "",
     bio: "",
     location: "",
   });
 
   const [preview, setPreview] = useState("");
-  const [file, setFile] = useState(null); // selected image file
+  const [file, setFile] = useState(null);
+
+  const user = auth.currentUser;
 
   useEffect(() => {
-    if (!userId) {
-      navigate("/signup");
+    if (!user) {
+      navigate("/login");
       return;
     }
 
-    const load = async () => {
+    const loadProfile = async () => {
       try {
-        const refDoc = doc(db, "users", userId);
+        const refDoc = doc(db, "users", user.uid);
         const snap = await getDoc(refDoc);
+
         if (snap.exists()) {
           const data = snap.data();
           setForm({
-            name: data.name || "",
+            fullName: data.fullName || data.name || "",
             username: data.username || "",
             bio: data.bio || "",
-            location: data.location || data.address || "",
+            location: data.location || "",
           });
-          setPreview(data.photo || data.profilePic || "");
+          setPreview(data.profilePic || data.photo || "");
         }
-      } catch (e) {
-        console.error("Error loading profile for edit:", e);
+      } catch (err) {
+        console.error("Load error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    load();
-  }, [userId, navigate]);
+    loadProfile();
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,38 +67,35 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!userId) return;
-
     setSaving(true);
-    try {
-      let photoURL = preview;
 
-      // upload image if a new one is selected
+    try {
+      let finalPhoto = preview;
+
+      // Handle image if a new file was picked
       if (file) {
-        const storageRef = ref(storage, `profiles/${userId}_${Date.now()}`);
-        await uploadBytes(storageRef, file);
-        photoURL = await getDownloadURL(storageRef);
+        finalPhoto = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
       }
 
-      const refDoc = doc(db, "users", userId);
-      await setDoc(
-        refDoc,
-        {
-          name: form.name,
-          username: form.username,
-          bio: form.bio,
-          location: form.location,
-          photo: photoURL,
-          updatedAt: new Date(),
-        },
-        { merge: true }
-      );
+      const updatedData = {
+        ...form,
+        profilePic: finalPhoto,
+        updatedAt: new Date().toISOString(),
+      };
 
-      alert("Profile updated successfully ✅");
+      // 🔥 THE FIX: Save to FIRESTORE, not just localStorage
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, updatedData, { merge: true });
+
+      alert("Profile updated successfully! ✅");
       navigate("/profile");
-    } catch (e) {
-      console.error("Error saving profile:", e);
-      alert("Failed to save profile. " + (e.message || ""));
+    } catch (err) {
+      console.error(err);
+      alert("Save failed ❌");
     } finally {
       setSaving(false);
     }
@@ -109,8 +105,8 @@ export default function EditProfile() {
     return (
       <div className="edit-layout">
         <Sidebar />
-        <div className="edit-main" style={{ alignItems: "center", justifyContent: "center" }}>
-          <p>Loading…</p>
+        <div className="edit-main">
+          <div className="loader">Loading Profile...</div>
         </div>
       </div>
     );
@@ -122,67 +118,71 @@ export default function EditProfile() {
 
       <div className="edit-main">
         <div className="edit-card">
-          <h2>Edit Profile</h2>
+          <div className="edit-header">
+            <h2>Edit Profile</h2>
+            <p>Update your information to build trust with donors.</p>
+          </div>
 
           <div className="edit-avatar-section">
             <div className="edit-avatar">
-              {preview ? (
-                <img src={preview} alt="preview" />
-              ) : (
-                <span>U</span>
-              )}
+              {preview ? <img src={preview} alt="Avatar" /> : <span>{form.fullName?.charAt(0) || "U"}</span>}
             </div>
 
             <label className="edit-upload-btn">
               Change Photo
-              <input type="file" accept="image/*" onChange={handleFileChange} hidden />
+              <input type="file" accept="image/*" hidden onChange={handleFileChange} />
             </label>
           </div>
 
           <form onSubmit={handleSubmit} className="edit-form">
-            <label>Full Name</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Your full name"
-            />
+            <div className="input-box">
+              <label>Full Name</label>
+              <input
+                name="fullName"
+                placeholder="Enter your full name"
+                value={form.fullName}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-            <label>Username</label>
-            <input
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              placeholder="your_username"
-            />
+            <div className="input-box">
+              <label>Username</label>
+              <input
+                name="username"
+                placeholder="username"
+                value={form.username}
+                onChange={handleChange}
+              />
+            </div>
 
-            <label>Bio</label>
-            <textarea
-              name="bio"
-              value={form.bio}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Say something about yourself & your startup"
-            />
+            <div className="input-box">
+              <label>Bio</label>
+              <textarea
+                name="bio"
+                placeholder="Write a short bio about yourself..."
+                value={form.bio}
+                onChange={handleChange}
+                rows={3}
+              />
+            </div>
 
-            <label>Location</label>
-            <input
-              name="location"
-              value={form.location}
-              onChange={handleChange}
-              placeholder="City, Country"
-            />
+            <div className="input-box">
+              <label>Location</label>
+              <input
+                name="location"
+                placeholder="City, Country"
+                value={form.location}
+                onChange={handleChange}
+              />
+            </div>
 
             <div className="edit-actions">
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => navigate("/profile")}
-              >
+              <button type="button" className="cancel-btn" onClick={() => navigate("/profile")}>
                 Cancel
               </button>
               <button type="submit" className="save-btn" disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? "Saving Changes..." : "Save Changes"}
               </button>
             </div>
           </form>

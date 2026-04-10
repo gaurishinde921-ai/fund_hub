@@ -1,5 +1,15 @@
 import { NavLink } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Home, Search, Mail, CreditCard, Plus, User, LogOut } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Search,
+  Mail,
+  CreditCard,
+  Plus,
+  User,
+  LogOut
+} from "lucide-react";
 
 import "./Sidebar.css";
 import logo from "../assets/logo.png";
@@ -10,9 +20,18 @@ export default function Sidebar({
   mobileOpen,
   setMobileOpen,
 }) {
+  const navItems = [
+    { to: "/home", icon: Home, label: "Home" },
+    { to: "/explore", icon: Search, label: "Explore" },
+    { to: "/requests", icon: Mail, label: "Requests" },
+    { to: "/subscriptions", icon: CreditCard, label: "Subscriptions" },
+    { to: "/add-post", icon: Plus, label: "Add Campaign" },
+    { to: "/profile", icon: User, label: "Profile" },
+  ];
+
   return (
     <>
-      {/* MOBILE OVERLAY (ONLY MOBILE) */}
+      {/* ================= MOBILE OVERLAY ================= */}
       {mobileOpen && (
         <div
           className="sidebar-overlay"
@@ -20,73 +39,59 @@ export default function Sidebar({
         />
       )}
 
+      {/* ================= SIDEBAR ================= */}
       <aside
         className={`sidebar 
           ${collapsed ? "collapsed" : ""} 
           ${mobileOpen ? "mobile-open" : ""}
         `}
       >
-        {/* LOGO + COLLAPSE */}
+        {/* ================= HEADER ================= */}
         <div className="sidebar-header">
           <div className="logo-box">
             <img src={logo} alt="FundHub" />
             {!collapsed && <span>FundHub</span>}
           </div>
 
-          {/* DESKTOP COLLAPSE ONLY */}
           <button
             className="collapse-btn desktop-only"
             onClick={() => setCollapsed(!collapsed)}
           >
-            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            {collapsed ? (
+              <ChevronRight size={18} />
+            ) : (
+              <ChevronLeft size={18} />
+            )}
           </button>
         </div>
 
-        {/* MENU */}
+        {/* ================= MENU ================= */}
         <nav className="sidebar-menu">
-          <NavLink to="/home" className="sidebar-link" data-label="Home">
-  <Home size={18} />
-  {!collapsed && <span>Home</span>}
-</NavLink>
+          {navItems.map((item, index) => {
+            const Icon = item.icon;
 
-<NavLink to="/explore" className="sidebar-link" data-label="Explore">
-  <Search size={18} />
-  {!collapsed && <span>Explore</span>}
-</NavLink>
+            return (
+              <NavLink
+                key={index}
+                to={item.to}
+                className="sidebar-link"
+                data-label={item.label}   /* Tooltip text */
+              >
+                <Icon size={18} />
 
-<NavLink to="/requests" className="sidebar-link" data-label="Requests">
-  <Mail size={18} />
-  {!collapsed && <span>Requests</span>}
-</NavLink>
-
-<NavLink to="/subscriptions" className="sidebar-link" data-label="Subscriptions">
-  <CreditCard size={18} />
-  {!collapsed && <span>Subscriptions</span>}
-</NavLink>
-
-<NavLink
-  to="/add-post"
-  className="sidebar-link"
-  data-label="Add Campaign"
->
-  <Plus size={18} />
-  {!collapsed && <span>Add Campaign</span>}
-</NavLink>
-
-
-<NavLink to="/profile" className="sidebar-link" data-label="Profile">
-  <User size={18} />
-  {!collapsed && <span>Profile</span>}
-</NavLink>
-
+                {/* Show label only when expanded */}
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            );
+          })}
         </nav>
 
-
-      
-
-        {/* LOGOUT */}
+        {/* ================= FOOTER ================= */}
         <div className="sidebar-footer">
-          <button className="logout-btn">
+          <button
+            className="logout-btn sidebar-link"
+            data-label="Logout"   /* Tooltip text */
+          >
             <LogOut size={18} />
             {!collapsed && <span>Logout</span>}
           </button>

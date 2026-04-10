@@ -1,11 +1,11 @@
 /* =========================
-   SIDEBAR BASE
+SIDEBAR BASE
 ========================= */
 .sidebar {
   width: 230px;
   height: 100vh;
   background: #020617;
-  color: #fff;
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   transition: width 0.25s ease;
@@ -18,7 +18,7 @@
 }
 
 /* =========================
-   HEADER
+HEADER
 ========================= */
 .sidebar-header {
   display: flex;
@@ -42,15 +42,16 @@
 .logo-box span {
   font-size: 18px;
   font-weight: 600;
+  color: #ffffff;
 }
 
 /* =========================
-   COLLAPSE BUTTON
+COLLAPSE BUTTON
 ========================= */
 .collapse-btn {
   background: none;
   border: none;
-  color: #cbd5f5;
+  color: #94a3b8;
   cursor: pointer;
 }
 
@@ -59,7 +60,7 @@
 }
 
 /* =========================
-   MENU
+MENU
 ========================= */
 .sidebar-menu {
   flex: 1;
@@ -69,28 +70,50 @@
   gap: 6px;
 }
 
+/* ===== LINK ===== */
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
   border-radius: 10px;
-  color: #cbd5f5;
+  color: #94a3b8;
   text-decoration: none;
+  position: relative;
+  overflow: visible;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
+/* Hover */
 .sidebar-link:hover {
-  background: rgba(37, 99, 235, 0.18);
-  color: #fff;
+  background: rgba(255,255,255,0.06);
+  color: #ffffff;
 }
 
+/* Active */
 .sidebar-link.active {
-  background: #2563eb;
-  color: #fff;
+  background: linear-gradient(135deg,#2563eb,#3b82f6);
+  color: #ffffff;
+  box-shadow: 0 8px 25px rgba(37,99,235,0.35);
 }
 
-/* COLLAPSED STATE FIX (IMPORTANT) */
+/* =========================
+REMOVE FLASH ANIMATION
+========================= */
+
+/* Disabled slide pseudo animation */
+.sidebar-link::before {
+  display: none;
+}
+
+.sidebar-link > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================
+COLLAPSED FIX
+========================= */
 .sidebar.collapsed .sidebar-link {
   justify-content: center;
 }
@@ -100,7 +123,7 @@
 }
 
 /* =========================
-   FOOTER
+FOOTER
 ========================= */
 .sidebar-footer {
   padding: 12px;
@@ -116,10 +139,17 @@
   gap: 12px;
   padding: 10px;
   cursor: pointer;
+  transition: 0.2s ease;
+  position: relative;
+  overflow: visible;
+}
+
+.logout-btn:hover {
+  background: rgba(248,113,113,0.1);
 }
 
 /* =========================
-   MOBILE
+MOBILE
 ========================= */
 @media (max-width: 768px) {
   .sidebar {
@@ -139,7 +169,7 @@
 }
 
 /* =========================
-   OVERLAY
+OVERLAY
 ========================= */
 .sidebar-overlay {
   position: fixed;
@@ -148,166 +178,71 @@
   z-index: 20;
 }
 
-.sidebar.collapsed .sidebar-link {
+/* =========================
+TOOLTIP — GLASS MORPHISM
+========================= */
+
+.sidebar.collapsed .sidebar-link,
+.sidebar.collapsed .logout-btn {
   position: relative;
+  overflow: visible;
 }
 
-.sidebar.collapsed .sidebar-link::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 75px;
-  background: #020617;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  font-size: 13px;
-  transition: 0.2s ease;
-}
-
-.sidebar.collapsed .sidebar-link:hover::after {
-  opacity: 1;
-}
-/* TOOLTIP FOR COLLAPSED SIDEBAR */
-.sidebar.collapsed .sidebar-link {
-  position: relative;
-}
-
-.sidebar.collapsed .sidebar-link::after {
+/* Tooltip box */
+.sidebar.collapsed .sidebar-link::after,
+.sidebar.collapsed .logout-btn::after {
   content: attr(data-label);
   position: absolute;
-  left: 70px;
-  background: #020617;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-50%);
+  left: 78px;
   top: 50%;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-  transition: opacity 0.15s ease;
-}
+  transform: translateY(-50%) scale(0.95);
 
-.sidebar.collapsed .sidebar-link:hover::after {
-  opacity: 1;
-}
-
-/* ================================
-   GLASSMORPHISM TOOLTIP (SMOOTH)
-   ================================ */
-
-.sidebar.collapsed .sidebar-link {
-  position: relative;
-}
-
-/* Tooltip */
-.sidebar.collapsed .sidebar-link::after {
-  content: attr(data-label);
-  position: absolute;
-  left: 72px;
-  top: 50%;
-  transform: translateY(-50%) translateX(-6px);
-  
-  background: rgba(2, 6, 23, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  color: #fff;
   padding: 6px 12px;
-  border-radius: 10px;
   font-size: 13px;
-  font-weight: 500;
   white-space: nowrap;
+  color: #fff;
 
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
 
   opacity: 0;
   pointer-events: none;
-
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
+  transition: all 0.18s ease;
+  z-index: 9999;
 }
 
-/* Show tooltip on hover */
-.sidebar.collapsed .sidebar-link:hover::after {
-  opacity: 1;
-  transform: translateY(-50%) translateX(6px);
-}
-
-/* ======================================
-   EXPANDED SIDEBAR – GLASS HOVER EFFECT
-   ====================================== */
-
-.sidebar:not(.collapsed) .sidebar-link {
-  position: relative;
-  overflow: hidden;
-}
-
-/* sliding glass layer */
-.sidebar:not(.collapsed) .sidebar-link::before {
+/* Arrow */
+.sidebar.collapsed .sidebar-link::before,
+.sidebar.collapsed .logout-btn::before {
   content: "";
   position: absolute;
-  inset: 0;
+  left: 70px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg) scale(0.9);
 
-  background: linear-gradient(
-    120deg,
-    rgba(37, 99, 235, 0.18),
-    rgba(37, 99, 235, 0.05)
-  );
+  width: 8px;
+  height: 8px;
 
-  transform: translateX(-100%);
-  transition: transform 0.35s ease;
-  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(255,255,255,0.12);
+  border-top: 1px solid rgba(255,255,255,0.12);
+
+  opacity: 0;
+  transition: all 0.18s ease;
+  z-index: 9999;
 }
 
-/* hover animation */
-.sidebar:not(.collapsed) .sidebar-link:hover::before {
-  transform: translateX(0);
-}
-
-/* text & icon above glass */
-.sidebar:not(.collapsed) .sidebar-link > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* slight lift */
-.sidebar:not(.collapsed) .sidebar-link:hover {
-  color: #fff;
-}
-
-/* ADD CAMPAIGN BUTTON */
-.sidebar-add {
-  padding: 12px;
-}
-
-.add-campaign-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #fff;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.25s ease;
-}
-
-.add-campaign-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
-}
-
-.sidebar.collapsed .add-campaign-btn {
-  padding: 12px 0;
+/* Show tooltip */
+.sidebar.collapsed .sidebar-link:hover::after,
+.sidebar.collapsed .sidebar-link:hover::before,
+.sidebar.collapsed .logout-btn:hover::after,
+.sidebar.collapsed .logout-btn:hover::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
 }

@@ -1,9 +1,55 @@
-// frontend/src/pages/Dashboard.jsx
 import React from "react";
 import Sidebar from "../components/Sidebar";
 import "./Dashboard.css";
 
 export default function Dashboard() {
+  const role = localStorage.getItem("role");
+
+  // ================= INVESTOR UI =================
+  if (role === "investor") {
+    return (
+      <div className="dashboard-container">
+        <Sidebar />
+
+        <div className="dashboard-content">
+          <div className="dashboard-header">
+            <h2>Investor Dashboard</h2>
+          </div>
+
+          <h3 className="welcome">Welcome back, Investor 💰</h3>
+
+          <div className="summary-boxes">
+            <div className="box">
+              <h3>₹50,000</h3>
+              <p>Total Invested</p>
+            </div>
+            <div className="box">
+              <h3>5</h3>
+              <p>Startups Funded</p>
+            </div>
+            <div className="box">
+              <h3>₹12,000</h3>
+              <p>Returns</p>
+            </div>
+          </div>
+
+          <div className="main-section">
+            <div className="campaigns">
+              <h3>Explore Startups 🚀</h3>
+              <p>Browse and invest in startups</p>
+            </div>
+
+            <div className="donations">
+              <h3>Your Investments</h3>
+              <p>No investments yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ================= ENTREPRENEUR UI (YOUR EXISTING CODE) =================
   const campaigns = [
     { id: 1, title: "XYZ", raised: 1000, goal: 5000, status: "Active" },
     { id: 2, title: "ABC", raised: 2000, goal: 8000, status: "Pending" },
@@ -21,7 +67,6 @@ export default function Dashboard() {
       <Sidebar />
 
       <div className="dashboard-content">
-        {/* Header */}
         <div className="dashboard-header">
           <h2>Dashboard</h2>
           <div className="user-info">
@@ -32,7 +77,6 @@ export default function Dashboard() {
 
         <h3 className="welcome">Welcome back, User 👋</h3>
 
-        {/* Summary Boxes */}
         <div className="summary-boxes">
           <div className="box">
             <h3>10</h3>
@@ -48,9 +92,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Campaigns and Donations */}
         <div className="main-section">
-          {/* Active Campaigns */}
           <div className="campaigns">
             <h3>Active Campaigns</h3>
             <table>
@@ -75,7 +117,6 @@ export default function Dashboard() {
             </table>
           </div>
 
-          {/* Recent Donations */}
           <div className="donations">
             <h3>Recent Donations</h3>
             {donations.map((d) => (
@@ -90,7 +131,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Profile Status */}
         <div className="profile-status">
           <h3>Profile Status</h3>
           <div className="status-box">
@@ -102,7 +142,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Graph */}
         <div className="progress-graph">
           <h3>Progress</h3>
           <div className="graph-placeholder">📈 Fund vs Days</div>
@@ -111,5 +150,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-

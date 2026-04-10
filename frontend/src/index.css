@@ -1,13 +1,116 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ================= THEME ROOT ================= */
+
+/* DEFAULT = FUNDHUB BLUE */
+
+:root {
+  --bg-main: #020617;
+  --bg-secondary: #020617;
+  --card-bg: rgba(255,255,255,0.03);
+  --border-color: rgba(255,255,255,0.08);
+
+  --text-main: #ffffff;
+  --text-muted: #94a3b8;
+
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+
+  --gradient-primary: linear-gradient(
+    90deg,
+    #2563eb,
+    #3b82f6
+  );
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* ================= PURPLE THEME ================= */
+
+[data-theme="purple"] {
+  --bg-main: #0b0418;
+  --bg-secondary: #140826;
+  --card-bg: rgba(168,85,247,0.08);
+  --border-color: rgba(168,85,247,0.2);
+
+  --text-main: #ffffff;
+  --text-muted: #c4b5fd;
+
+  --primary: #a855f7;
+  --primary-light: #c084fc;
+
+  --gradient-primary: linear-gradient(
+    90deg,
+    #9333ea,
+    #c084fc
+  );
+}
+
+/* ================= GREEN THEME ================= */
+
+[data-theme="green"] {
+  --bg-main: #03140c;
+  --bg-secondary: #052e16;
+  --card-bg: rgba(34,197,94,0.08);
+  --border-color: rgba(34,197,94,0.2);
+
+  --text-main: #ffffff;
+  --text-muted: #86efac;
+
+  --primary: #22c55e;
+  --primary-light: #4ade80;
+
+  --gradient-primary: linear-gradient(
+    90deg,
+    #16a34a,
+    #4ade80
+  );
+}
+
+/* ================= ORANGE THEME ================= */
+
+[data-theme="orange"] {
+  --bg-main: #140a03;
+  --bg-secondary: #1c0d03;
+  --card-bg: rgba(249,115,22,0.08);
+  --border-color: rgba(249,115,22,0.2);
+
+  --text-main: #ffffff;
+  --text-muted: #fdba74;
+
+  --primary: #f97316;
+  --primary-light: #fb923c;
+
+  --gradient-primary: linear-gradient(
+    90deg,
+    #ea580c,
+    #fb923c
+  );
+}
+
+/* ================= APPLY GLOBAL ================= */
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  transition: background .4s ease, color .4s ease;
+}
+
+/* Cards auto theme */
+.card,
+.feature-card,
+.support-tag-card,
+.campaign-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+/* Buttons auto theme */
+.btn-primary {
+  background: var(--gradient-primary);
+}
+
+.btn-outline {
+  border: 1px solid var(--border-color);
+}
+
+/* Text muted */
+.text-muted {
+  color: var(--text-muted);
 }

@@ -1,9 +1,12 @@
-/* ================= LAYOUT ================= */
+/* ================= GENERAL ================= */
 
 .profile-container {
   padding: 20px 30px;
-  background: #020817;
+  background-color: #020817;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  color: white;
 }
 
 /* ================= BANNER ================= */
@@ -13,25 +16,13 @@
   border-radius: 20px;
   position: relative;
   overflow: hidden;
+  background-color: #0f172a;
 }
 
 .cover-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.cover-upload {
-  position: absolute;
-  bottom: 14px;
-  right: 18px;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
 }
 
 /* ================= HEADER ================= */
@@ -43,14 +34,6 @@
   align-items: center;
   margin-top: 20px;
 }
-
-.profile-left {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-/* ================= AVATAR ================= */
 
 .avatar-wrapper {
   position: absolute;
@@ -66,8 +49,6 @@
   object-fit: cover;
 }
 
-/* ================= INFO ================= */
-
 .profile-info {
   margin-left: 170px;
 }
@@ -75,17 +56,16 @@
 .profile-info h2 {
   margin: 0;
   font-size: 24px;
-  color: white;
 }
 
 .username {
-  color: #60a5fa;
+  color: #3b82f6;
   margin-top: 4px;
 }
 
 .bio {
   color: #94a3b8;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* ================= ACTIONS ================= */
@@ -99,7 +79,7 @@
   background: transparent;
   border: 1px solid #3b82f6;
   color: white;
-  padding: 8px 16px;
+  padding: 8px 18px;
   border-radius: 20px;
   cursor: pointer;
 }
@@ -114,27 +94,32 @@
 
 .stat-box {
   flex: 1;
-  padding: 24px;
+  padding: 22px;
   border-radius: 18px;
   border: 1px solid #1e293b;
   text-align: center;
-  background: #020817;
-  color: white;
+  background: #0f172a;
 }
 
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
+.stat-box h3 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.stat-box p {
+  color: #94a3b8;
+  margin-top: 6px;
+  font-size: 12px;
 }
 
 /* ================= TABS ================= */
 
 .tabs {
   display: flex;
-  gap: 18px;
-  margin-top: 30px;
+  gap: 10px;
+  margin-top: 35px;
   border-bottom: 1px solid #1e293b;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
 }
 
 .tabs button {
@@ -142,90 +127,57 @@
   border: none;
   color: #94a3b8;
   cursor: pointer;
-  padding: 6px 14px;
+  padding: 10px 20px;
   border-radius: 20px;
 }
 
-.tabs .active {
+.tabs button.active {
   background: #3b82f6;
   color: white;
-}
-
-/* ================= CONTENT ================= */
-
-.content-box {
-  margin-top: 20px;
-  padding: 24px;
-  border-radius: 18px;
-  border: 1px solid #1e293b;
-  background: #020817;
 }
 
 /* ================= GRID ================= */
 
 .campaign-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
 }
 
-/* ================= CARD ================= */
-
 .campaign-card {
-  background: #020817;
+  background: #0f172a;
   border: 1px solid #1e293b;
   border-radius: 16px;
   overflow: hidden;
-  transition: 0.25s;
 }
 
-.campaign-card:hover {
-  transform: translateY(-4px);
-  border-color: #3b82f6;
-}
-
-.campaign-img {
+.campaign-card img {
   width: 100%;
-  height: 160px;
+  height: 180px;
   object-fit: cover;
 }
 
 .campaign-body {
-  padding: 14px 16px;
+  padding: 15px;
 }
 
 .campaign-body h4 {
-  color: white;
-  margin-bottom: 6px;
+  margin: 0 0 10px;
 }
 
-.campaign-amount {
+.campaign-body p {
   color: #94a3b8;
-  font-size: 13px;
-  margin-bottom: 10px;
 }
 
-/* ================= PROGRESS ================= */
+/* ================= BUTTON ================= */
 
-.progress-bar {
-  height: 6px;
-  background: #1e293b;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #9333ea);
-}
-
-/* ================= ADD BUTTON ================= */
-
-.add-btn {
-  padding: 12px 22px;
-  background: #3b82f6;
+.campaign-card button {
+  margin: 5px;
+  padding: 6px 12px;
   border: none;
-  border-radius: 24px;
+  background: #3b82f6;
   color: white;
+  border-radius: 6px;
   cursor: pointer;
 }

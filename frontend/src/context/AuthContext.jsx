@@ -5,21 +5,26 @@ import { auth } from "../firebase";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(undefined); // still checking
+  const [loading, setLoading] = useState(true); // 🔥 added
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+      setUser(currentUser || null);
+      setLoading(false); // ✅ done checking
     });
 
     return unsubscribe;
   }, []);
 
+  // 🔐 Wait until Firebase finishes restoring session
+  if (user === undefined) {
+    return null;
+  }
+
   return (
     <AuthContext.Provider value={{ user, loading }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
